@@ -24,6 +24,9 @@ import InventoryReception from './pages/inventory/Reception';
 import InventoryExpiry from './pages/inventory/Expiry';
 import InventoryStockOut from './pages/inventory/StockOut';
 import InventoryLocations from './pages/inventory/Locations';
+import StaffPage from './pages/schedule/Staff';
+import TimeOffPage from './pages/schedule/TimeOff';
+import SchedulePage from './pages/schedule/Schedule';
 
 function App() {
     const { isAuthenticated } = useAuthStore();
@@ -54,6 +57,9 @@ function App() {
                     <Route path="/inventory/expiry" element={<InventoryExpiry />} />
                     <Route path="/inventory/stock-out" element={<InventoryStockOut />} />
                     <Route path="/inventory/locations" element={<InventoryLocations />} />
+                    <Route path="/staff" element={<StaffPage />} />
+                    <Route path="/time-off" element={<TimeOffPage />} />
+                    <Route path="/schedule" element={<SchedulePage />} />
                     <Route path="/hr" element={<HR />} />
                     <Route path="/organizations" element={<Organizations />} />
                     <Route path="/settings" element={<Settings />} />

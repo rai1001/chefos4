@@ -17,6 +17,8 @@ import {
     CalendarClock,
     ScanBarcode,
     MapPin,
+    CalendarDays,
+    CalendarOff,
 } from 'lucide-react';
 
 const navigation = [
@@ -33,6 +35,9 @@ const navigation = [
     { name: 'Producción', href: '/production', icon: Layers },
     { name: 'Cocina', href: '/kitchen', icon: ChefHat },
     { name: 'Mermas', href: '/waste', icon: Trash2 },
+    { name: 'Equipo', href: '/staff', icon: Users },
+    { name: 'Ausencias', href: '/time-off', icon: CalendarOff },
+    { name: 'Horario', href: '/schedule', icon: CalendarDays },
     { name: 'Personal', href: '/hr', icon: Users },
     { name: 'Hoteles', href: '/organizations', icon: Hotel },
     { name: 'Configuración', href: '/settings', icon: Settings },

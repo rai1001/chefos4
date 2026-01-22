@@ -33,6 +33,12 @@ tags:
     description: OCR delivery notes and imports
   - name: Inventory
     description: Batches, expiries, stock-out, locations
+  - name: Staff
+    description: Kitchen staff profiles and contracts
+  - name: Time Off
+    description: Staff time off requests and approvals
+  - name: Schedules
+    description: Monthly schedules and shifts
 
 paths:
   /health:
@@ -383,6 +389,371 @@ paths:
       responses:
         '200':
           description: Location deleted
+
+  /staff:
+    get:
+      summary: List staff profiles
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Staff list
+    post:
+      summary: Create staff profile
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - member_id
+              properties:
+                member_id:
+                  type: string
+                role_in_kitchen:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+                active:
+                  type: boolean
+                contract:
+                  type: object
+                  properties:
+                    weekly_hours_target:
+                      type: number
+                    max_weekly_hours:
+                      type: number
+                    vacation_days_per_year:
+                      type: integer
+                    rest_min_hours_between_shifts:
+                      type: integer
+      responses:
+        '201':
+          description: Staff created
+
+  /staff/{id}:
+    patch:
+      summary: Update staff profile
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role_in_kitchen:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+                active:
+                  type: boolean
+                contract:
+                  type: object
+                  properties:
+                    weekly_hours_target:
+                      type: number
+                    max_weekly_hours:
+                      type: number
+                    vacation_days_per_year:
+                      type: integer
+                    rest_min_hours_between_shifts:
+                      type: integer
+      responses:
+        '200':
+          description: Staff updated
+
+  /staff/{id}/vacation-balance:
+    get:
+      summary: Get staff vacation balance
+      tags:
+        - Staff
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: year
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Vacation balance
+
+  /time-off:
+    get:
+      summary: List time off requests
+      tags:
+        - Time Off
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Time off list
+    post:
+      summary: Request time off
+      tags:
+        - Time Off
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - staff_id
+                - type
+                - start_date
+                - end_date
+              properties:
+                staff_id:
+                  type: string
+                type:
+                  type: string
+                  enum: [VACATION, SICK_LEAVE, OTHER]
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Time off requested
+
+  /time-off/{id}/approve:
+    patch:
+      summary: Approve time off
+      tags:
+        - Time Off
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policy:
+                  type: string
+                  enum: [CALENDAR, BUSINESS]
+      responses:
+        '200':
+          description: Time off approved
+
+  /time-off/{id}/reject:
+    patch:
+      summary: Reject time off
+      tags:
+        - Time Off
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Time off rejected
+
+  /schedules/months:
+    post:
+      summary: Create schedule month
+      tags:
+        - Schedules
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - month
+              properties:
+                month:
+                  type: string
+                  example: 2026-01
+      responses:
+        '201':
+          description: Schedule month created
+
+  /schedules/months/{id}:
+    get:
+      summary: Get schedule month
+      tags:
+        - Schedules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schedule month detail
+
+  /schedules/months/{id}/publish:
+    post:
+      summary: Publish schedule month
+      tags:
+        - Schedules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schedule month published
+
+  /schedules/shifts:
+    post:
+      summary: Create shift
+      tags:
+        - Schedules
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - schedule_month_id
+                - date
+                - start_time
+                - end_time
+                - shift_code
+              properties:
+                schedule_month_id:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                start_time:
+                  type: string
+                end_time:
+                  type: string
+                shift_code:
+                  type: string
+                station:
+                  type: string
+      responses:
+        '201':
+          description: Shift created
+
+  /schedules/shifts/{id}:
+    patch:
+      summary: Update shift
+      tags:
+        - Schedules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                start_time:
+                  type: string
+                end_time:
+                  type: string
+                shift_code:
+                  type: string
+                station:
+                  type: string
+      responses:
+        '200':
+          description: Shift updated
+
+  /schedules/shifts/{id}/assignments:
+    patch:
+      summary: Update shift assignments
+      tags:
+        - Schedules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                staff_ids:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Assignments updated
 
 components:
   schemas:

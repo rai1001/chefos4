@@ -26,6 +26,9 @@ import hrRoutes from './routes/hr.routes';
 import organizationsRoutes from './routes/organizations.routes';
 import inventoryRoutes from './routes/inventory.routes';
 import deliveryNotesRoutes from './routes/delivery-notes.routes';
+import staffRoutes from './routes/staff.routes';
+import timeOffRoutes from './routes/time-off.routes';
+import schedulesRoutes from './routes/schedules.routes';
 
 
 dotenv.config();
@@ -81,6 +84,9 @@ app.use(`${apiPrefix}/hr`, hrRoutes);
 app.use(`${apiPrefix}/organizations`, organizationsRoutes);
 app.use(`${apiPrefix}/inventory`, inventoryRoutes);
 app.use(`${apiPrefix}/delivery-notes`, deliveryNotesRoutes);
+app.use(`${apiPrefix}/staff`, staffRoutes);
+app.use(`${apiPrefix}/time-off`, timeOffRoutes);
+app.use(`${apiPrefix}/schedules`, schedulesRoutes);
 
 
 // =====================================================

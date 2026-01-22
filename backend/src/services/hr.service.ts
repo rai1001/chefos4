@@ -34,7 +34,7 @@ export class HRService {
     async getEmployees(organizationId: string) {
         const { data, error } = await supabase
             .from('organization_members')
-            .select('role, user:users (id, name, email)')
+            .select('id, role, user:users (id, name, email)')
             .eq('organization_id', organizationId)
             .is('user.deleted_at', null);
 
