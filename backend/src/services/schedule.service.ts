@@ -33,6 +33,17 @@ export class ScheduleService {
             .single();
 
         if (error) {
+            if (error.code === '23505') {
+                const { data: existingAfter } = await supabase
+                    .from('schedule_months')
+                    .select('*')
+                    .eq('organization_id', organizationId)
+                    .eq('month', monthDate)
+                    .maybeSingle();
+                if (existingAfter) {
+                    return existingAfter;
+                }
+            }
             logger.error(error, 'Error creating schedule month');
             throw new AppError(500, 'Failed to create schedule month');
         }

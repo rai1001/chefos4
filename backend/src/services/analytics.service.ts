@@ -28,7 +28,7 @@ export class AnalyticsService {
             .from('v_food_cost_metrics')
             .select('*')
             .eq('organization_id', organizationId)
-            .order('event_date', { ascending: false })
+            .order('date_start', { ascending: false })
             .limit(5);
 
         if (error) throw error;
@@ -45,12 +45,17 @@ export class AnalyticsService {
         const totalValuation = valuation?.reduce((acc, curr) => acc + Number(curr.total_value), 0) || 0;
 
         // Count of low stock items
-        const { count: lowStockCount } = await supabase
+        const { data: lowStockRows, error: lowStockError } = await supabase
             .from('ingredients')
-            .select('*', { count: 'exact', head: true })
+            .select('stock_current, stock_min')
             .eq('organization_id', organizationId)
-            .is('deleted_at', null)
-            .filter('stock_current', 'lte', 'stock_min');
+            .is('deleted_at', null);
+
+        if (lowStockError) throw lowStockError;
+
+        const lowStockCount = (lowStockRows || []).filter(
+            (row) => Number(row.stock_current) <= Number(row.stock_min)
+        ).length;
 
         // Pending Purchase Orders
         const { count: pendingPOs } = await supabase

@@ -8,9 +8,9 @@ const controller = new HRController();
 
 router.use(authMiddleware);
 
-router.get('/employees', controller.getEmployees);
-router.post('/invite', controller.invite);
-router.get('/schedules', controller.getSchedules);
-router.post('/schedules', controller.saveSchedule);
+router.get('/employees', controller.getEmployees.bind(controller));
+router.post('/invite', controller.invite.bind(controller));
+router.get('/schedules', controller.getSchedules.bind(controller));
+router.post('/schedules', controller.saveSchedule.bind(controller));
 
 export default router;

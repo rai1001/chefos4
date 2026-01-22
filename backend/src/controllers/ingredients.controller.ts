@@ -275,14 +275,16 @@ export class IngredientsController {
         `)
                 .in('organization_id', orgIds)
                 .is('deleted_at', null)
-                .filter('stock_current', 'lte', 'stock_min')
                 .order('stock_current', { ascending: true });
 
 
             if (error) throw error;
 
 
-            res.json({ data, total: data?.length || 0 });
+            const filtered = (data || []).filter(
+                (row) => Number(row.stock_current) <= Number(row.stock_min)
+            );
+            res.json({ data: filtered, total: filtered.length });
         } catch (error: any) {
             logger.error('Error fetching low stock ingredients:', error);
             res.status(500).json({ error: 'Failed to fetch low stock ingredients' });

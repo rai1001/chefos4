@@ -20,10 +20,7 @@ export class DeliveryNotesController {
             unit_price,
             ingredient_id,
             unit_id,
-            status,
-            lot_code,
-            expiry_date,
-            storage_location_id
+            status
           )
         `)
                 .in('organization_id', req.user!.organizationIds)
@@ -51,10 +48,7 @@ export class DeliveryNotesController {
             unit_price,
             ingredient_id,
             unit_id,
-            status,
-            lot_code,
-            expiry_date,
-            storage_location_id
+            status
           )
         `)
                 .eq('id', id)

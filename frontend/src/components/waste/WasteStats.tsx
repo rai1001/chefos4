@@ -89,7 +89,7 @@ export function WasteStats() {
                     </CardHeader>
                     <CardContent>
                         <div className="h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height={260}>
                                 <PieChart>
                                     <Pie
                                         data={byCauseData}
@@ -117,7 +117,7 @@ export function WasteStats() {
                     </CardHeader>
                     <CardContent>
                         <div className="h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height={260}>
                                 <BarChart data={byIngredientData}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />

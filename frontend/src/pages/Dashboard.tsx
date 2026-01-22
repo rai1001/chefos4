@@ -106,7 +106,7 @@ export default function Dashboard() {
                         <CardTitle>Valor por Familia</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height={260}>
                             <PieChart>
                                 <Pie
                                     data={valuation}
@@ -139,7 +139,7 @@ export default function Dashboard() {
                         <CardTitle>Tendencias de Consumo</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height={260}>
                             <LineChart data={trends}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis
