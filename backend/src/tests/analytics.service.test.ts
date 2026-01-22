@@ -47,10 +47,10 @@ describe('AnalyticsService', () => {
     });
 
     it('returns food cost metrics', async () => {
-        vi.spyOn(supabase, 'from').mockReturnValue(createChain([{ event_date: '2024-01-01' }]));
+        vi.spyOn(supabase, 'from').mockReturnValue(createChain([{ date_start: '2024-01-01' }]));
         const service = new AnalyticsService();
         const data = await service.getFoodCostMetrics('org-1');
-        expect(data).toEqual([{ event_date: '2024-01-01' }]);
+        expect(data).toEqual([{ date_start: '2024-01-01' }]);
     });
 
     it('throws when food cost metrics fail', async () => {
@@ -66,7 +66,11 @@ describe('AnalyticsService', () => {
                 return createChain([{ total_value: 10 }, { total_value: 20 }]);
             }
             if (table === 'ingredients') {
-                return createChain([], null, 2);
+                return createChain([
+                    { stock_current: 1, stock_min: 2 },
+                    { stock_current: 0, stock_min: 0 },
+                    { stock_current: 5, stock_min: 2 },
+                ]);
             }
             if (table === 'purchase_orders') {
                 return createChain([], null, 3);

@@ -535,6 +535,17 @@ paths:
         '200':
           description: Alert resolved
 
+  /inventory/alerts/run:
+    post:
+      summary: Run inventory alerts job
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Alerts job executed
+
   /staff:
     get:
       summary: List staff profiles

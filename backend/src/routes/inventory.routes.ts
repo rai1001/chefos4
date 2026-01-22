@@ -24,5 +24,6 @@ router.post('/cycle-counts/:id/complete', authMiddleware, controller.completeCyc
 
 router.get('/alerts', authMiddleware, controller.listAlerts.bind(controller));
 router.patch('/alerts/:id/resolve', authMiddleware, controller.resolveAlert.bind(controller));
+router.post('/alerts/run', authMiddleware, controller.runAlerts.bind(controller));
 
 export default router;

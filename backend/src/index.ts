@@ -31,6 +31,9 @@ import timeOffRoutes from './routes/time-off.routes';
 import schedulesRoutes from './routes/schedules.routes';
 import preparationsRoutes from './routes/preparations.routes';
 import scheduleRulesRoutes from './routes/schedule-rules.routes';
+import cron from 'node-cron';
+import { InventoryAlertsJobService } from '@/services/inventory-alerts-job.service';
+import { supabase } from '@/config/supabase';
 
 
 dotenv.config();
@@ -120,6 +123,22 @@ if (process.env.NODE_ENV !== 'test') {
         logger.info(`📡 Environment: ${process.env.NODE_ENV}`);
         logger.info(`🔗 API Base: http://localhost:${PORT}${apiPrefix}`);
     });
+
+    if (process.env.ENABLE_ALERTS_CRON === 'true') {
+        const cronExpression = process.env.ALERTS_CRON || '0 6 * * *';
+        const jobService = new InventoryAlertsJobService();
+        cron.schedule(cronExpression, async () => {
+            try {
+                const { data: organizations } = await supabase.from('organizations').select('id');
+                const orgIds = (organizations || []).map((org) => org.id);
+                await jobService.runForOrganizations(orgIds);
+                logger.info({ cronExpression }, 'Inventory alerts cron executed');
+            } catch (error) {
+                logger.error(error, 'Inventory alerts cron failed');
+            }
+        });
+        logger.info({ cronExpression }, 'Inventory alerts cron scheduled');
+    }
 }
 
 export default app;

@@ -4,6 +4,7 @@ import { AuthRequest } from '@/middleware/auth.middleware';
 import { InventoryService } from '@/services/inventory.service';
 import { CycleCountService } from '@/services/cycle-count.service';
 import { InventoryAlertsService } from '@/services/inventory-alerts.service';
+import { InventoryAlertsJobService } from '@/services/inventory-alerts-job.service';
 import { ExpiryOCRService } from '@/services/expiry-ocr.service';
 import { BatchConsumptionService } from '@/services/batch-consumption.service';
 import { BarcodeResolverService } from '@/services/barcode-resolver.service';
@@ -20,6 +21,7 @@ export class InventoryController {
     private batchConsumption = new BatchConsumptionService();
     private cycleCountService = new CycleCountService();
     private alertsService = new InventoryAlertsService();
+    private alertsJob = new InventoryAlertsJobService();
 
     async listBatches(req: AuthRequest, res: Response): Promise<void> {
         try {
@@ -281,6 +283,16 @@ export class InventoryController {
         } catch (error) {
             logger.error('Error resolving alert:', error);
             res.status(500).json({ error: 'Failed to resolve alert' });
+        }
+    }
+
+    async runAlerts(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const results = await this.alertsJob.runForOrganizations(req.user!.organizationIds);
+            res.json({ data: results });
+        } catch (error: any) {
+            logger.error('Error running inventory alerts job:', error);
+            res.status(500).json({ error: error.message || 'Failed to run inventory alerts job' });
         }
     }
 }
