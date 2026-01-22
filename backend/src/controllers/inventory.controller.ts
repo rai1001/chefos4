@@ -2,6 +2,8 @@ import { Response } from 'express';
 import multer from 'multer';
 import { AuthRequest } from '@/middleware/auth.middleware';
 import { InventoryService } from '@/services/inventory.service';
+import { CycleCountService } from '@/services/cycle-count.service';
+import { InventoryAlertsService } from '@/services/inventory-alerts.service';
 import { ExpiryOCRService } from '@/services/expiry-ocr.service';
 import { BatchConsumptionService } from '@/services/batch-consumption.service';
 import { BarcodeResolverService } from '@/services/barcode-resolver.service';
@@ -16,6 +18,8 @@ export class InventoryController {
     private inventoryService = new InventoryService();
     private barcodeResolver = new BarcodeResolverService();
     private batchConsumption = new BatchConsumptionService();
+    private cycleCountService = new CycleCountService();
+    private alertsService = new InventoryAlertsService();
 
     async listBatches(req: AuthRequest, res: Response): Promise<void> {
         try {
@@ -172,6 +176,111 @@ export class InventoryController {
         } catch (error) {
             logger.error('Error deleting location:', error);
             res.status(500).json({ error: 'Failed to delete location' });
+        }
+    }
+
+    async listCycleCounts(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const counts = await this.cycleCountService.listCounts(req.user!.organizationIds);
+            res.json({ data: counts });
+        } catch (error) {
+            logger.error('Error listing cycle counts:', error);
+            res.status(500).json({ error: 'Failed to fetch cycle counts' });
+        }
+    }
+
+    async getCycleCount(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const count = await this.cycleCountService.getCount({ id, organizationIds: req.user!.organizationIds });
+            res.json({ data: count });
+        } catch (error) {
+            logger.error('Error fetching cycle count:', error);
+            res.status(500).json({ error: 'Failed to fetch cycle count' });
+        }
+    }
+
+    async createCycleCount(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { name, location_id } = req.body;
+            if (!name) {
+                res.status(400).json({ error: 'Name is required' });
+                return;
+            }
+            const count = await this.cycleCountService.createCount({
+                organizationId: req.user!.organizationIds[0],
+                name,
+                locationId: location_id ?? null,
+                userId: req.user!.id,
+            });
+            res.status(201).json({ data: count });
+        } catch (error) {
+            logger.error('Error creating cycle count:', error);
+            res.status(500).json({ error: 'Failed to create cycle count' });
+        }
+    }
+
+    async updateCycleCountItems(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const { items } = req.body;
+            if (!Array.isArray(items)) {
+                res.status(400).json({ error: 'Items are required' });
+                return;
+            }
+            const result = await this.cycleCountService.updateItems({
+                countId: id,
+                organizationIds: req.user!.organizationIds,
+                items,
+            });
+            res.json({ data: result });
+        } catch (error) {
+            logger.error('Error updating cycle count items:', error);
+            res.status(500).json({ error: 'Failed to update cycle count items' });
+        }
+    }
+
+    async completeCycleCount(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const result = await this.cycleCountService.completeCount({
+                countId: id,
+                organizationIds: req.user!.organizationIds,
+                userId: req.user!.id,
+            });
+            res.json({ data: result });
+        } catch (error: any) {
+            logger.error('Error completing cycle count:', error);
+            res.status(500).json({ error: error.message || 'Failed to complete cycle count' });
+        }
+    }
+
+    async listAlerts(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { status } = req.query;
+            const alerts = await this.alertsService.listAlerts({
+                organizationIds: req.user!.organizationIds,
+                status: status as 'OPEN' | 'RESOLVED' | undefined,
+            });
+            res.json({ data: alerts });
+        } catch (error) {
+            logger.error('Error listing alerts:', error);
+            res.status(500).json({ error: 'Failed to fetch alerts' });
+        }
+    }
+
+    async resolveAlert(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const alert = await this.alertsService.resolveAlert({
+                id,
+                organizationIds: req.user!.organizationIds,
+                userId: req.user!.id,
+            });
+            res.json({ data: alert });
+        } catch (error) {
+            logger.error('Error resolving alert:', error);
+            res.status(500).json({ error: 'Failed to resolve alert' });
         }
     }
 }

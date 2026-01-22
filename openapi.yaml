@@ -394,6 +394,147 @@ paths:
         '200':
           description: Location deleted
 
+  /inventory/cycle-counts:
+    get:
+      summary: List cycle counts
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Cycle counts list
+    post:
+      summary: Create cycle count
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                location_id:
+                  type: string
+      responses:
+        '201':
+          description: Cycle count created
+
+  /inventory/cycle-counts/{id}:
+    get:
+      summary: Get cycle count detail
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cycle count detail
+
+  /inventory/cycle-counts/{id}/items:
+    patch:
+      summary: Update cycle count items
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - counted_qty
+                    properties:
+                      id:
+                        type: string
+                      counted_qty:
+                        type: number
+                      notes:
+                        type: string
+      responses:
+        '200':
+          description: Cycle count items updated
+
+  /inventory/cycle-counts/{id}/complete:
+    post:
+      summary: Complete cycle count and create adjustments
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cycle count completed
+
+  /inventory/alerts:
+    get:
+      summary: List inventory alerts
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, RESOLVED]
+      responses:
+        '200':
+          description: Alerts list
+
+  /inventory/alerts/{id}/resolve:
+    patch:
+      summary: Resolve inventory alert
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Alert resolved
+
   /staff:
     get:
       summary: List staff profiles

@@ -16,4 +16,13 @@ router.post('/locations', authMiddleware, controller.createLocation.bind(control
 router.patch('/locations/:id', authMiddleware, controller.updateLocation.bind(controller));
 router.delete('/locations/:id', authMiddleware, controller.deleteLocation.bind(controller));
 
+router.get('/cycle-counts', authMiddleware, controller.listCycleCounts.bind(controller));
+router.post('/cycle-counts', authMiddleware, controller.createCycleCount.bind(controller));
+router.get('/cycle-counts/:id', authMiddleware, controller.getCycleCount.bind(controller));
+router.patch('/cycle-counts/:id/items', authMiddleware, controller.updateCycleCountItems.bind(controller));
+router.post('/cycle-counts/:id/complete', authMiddleware, controller.completeCycleCount.bind(controller));
+
+router.get('/alerts', authMiddleware, controller.listAlerts.bind(controller));
+router.patch('/alerts/:id/resolve', authMiddleware, controller.resolveAlert.bind(controller));
+
 export default router;

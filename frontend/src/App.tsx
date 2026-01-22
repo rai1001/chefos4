@@ -24,6 +24,8 @@ import InventoryReception from './pages/inventory/Reception';
 import InventoryExpiry from './pages/inventory/Expiry';
 import InventoryStockOut from './pages/inventory/StockOut';
 import InventoryLocations from './pages/inventory/Locations';
+import InventoryCycleCounts from './pages/inventory/CycleCounts';
+import Alerts from './pages/Alerts';
 import StaffPage from './pages/schedule/Staff';
 import TimeOffPage from './pages/schedule/TimeOff';
 import SchedulePage from './pages/schedule/Schedule';
@@ -59,6 +61,8 @@ function App() {
                     <Route path="/inventory/expiry" element={<InventoryExpiry />} />
                     <Route path="/inventory/stock-out" element={<InventoryStockOut />} />
                     <Route path="/inventory/locations" element={<InventoryLocations />} />
+                    <Route path="/inventory/cycle-counts" element={<InventoryCycleCounts />} />
+                    <Route path="/alerts" element={<Alerts />} />
                     <Route path="/staff" element={<StaffPage />} />
                     <Route path="/time-off" element={<TimeOffPage />} />
                     <Route path="/schedule" element={<SchedulePage />} />

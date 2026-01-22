@@ -21,6 +21,7 @@ import {
     CalendarOff,
     FlaskConical,
     Tag,
+    Bell,
 } from 'lucide-react';
 
 const navigation = [
@@ -33,7 +34,9 @@ const navigation = [
     { name: 'Inventario - Recepción', href: '/inventory/reception', icon: ClipboardList },
     { name: 'Inventario - Caducidades', href: '/inventory/expiry', icon: CalendarClock },
     { name: 'Inventario - Salidas', href: '/inventory/stock-out', icon: ScanBarcode },
+    { name: 'Inventario - Recuentos', href: '/inventory/cycle-counts', icon: ClipboardList },
     { name: 'Inventario - Ubicaciones', href: '/inventory/locations', icon: MapPin },
+    { name: 'Alertas', href: '/alerts', icon: Bell },
     { name: 'Producción', href: '/production', icon: Layers },
     { name: 'Cocina', href: '/kitchen', icon: ChefHat },
     { name: 'Mermas', href: '/waste', icon: Trash2 },

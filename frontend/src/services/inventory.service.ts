@@ -21,6 +21,39 @@ export interface StorageLocation {
     type?: string | null;
 }
 
+export interface CycleCount {
+    id: string;
+    name: string;
+    status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED';
+    location_id?: string | null;
+    created_at: string;
+    completed_at?: string | null;
+}
+
+export interface CycleCountItem {
+    id: string;
+    ingredient_id: string;
+    batch_id?: string | null;
+    expected_qty: number;
+    counted_qty: number;
+    variance_qty: number;
+    unit_id?: string | null;
+    notes?: string | null;
+    ingredient?: { id: string; name: string };
+    batch?: { id: string; expiry_date?: string | null; lot_code?: string | null };
+    unit?: { id: string; name: string; abbreviation: string };
+}
+
+export interface InventoryAlert {
+    id: string;
+    type: 'EXPIRING_SOON' | 'EXPIRED' | 'LOW_STOCK';
+    entity_type: 'BATCH' | 'INGREDIENT' | 'PREPARATION_BATCH';
+    entity_id: string;
+    severity: 'INFO' | 'WARN' | 'CRITICAL';
+    created_at: string;
+    resolved_at?: string | null;
+}
+
 export const inventoryService = {
     async listBatches(params?: { ingredient_id?: string; expiring_in_days?: number; location_id?: string }) {
         const response = await api.get('/inventory/batches', { params });
@@ -72,5 +105,40 @@ export const inventoryService = {
     async deleteLocation(id: string) {
         const response = await api.delete(`/inventory/locations/${id}`);
         return response.data.data as { deleted: boolean };
+    },
+
+    async listCycleCounts() {
+        const response = await api.get('/inventory/cycle-counts');
+        return response.data.data as CycleCount[];
+    },
+
+    async getCycleCount(id: string) {
+        const response = await api.get(`/inventory/cycle-counts/${id}`);
+        return response.data.data as CycleCount & { items: CycleCountItem[] };
+    },
+
+    async createCycleCount(payload: { name: string; location_id?: string | null }) {
+        const response = await api.post('/inventory/cycle-counts', payload);
+        return response.data.data as CycleCount;
+    },
+
+    async updateCycleCountItems(id: string, items: { id: string; counted_qty: number; notes?: string | null }[]) {
+        const response = await api.patch(`/inventory/cycle-counts/${id}/items`, { items });
+        return response.data.data as { updated: boolean };
+    },
+
+    async completeCycleCount(id: string) {
+        const response = await api.post(`/inventory/cycle-counts/${id}/complete`);
+        return response.data.data as { completed: boolean };
+    },
+
+    async listAlerts(status?: 'OPEN' | 'RESOLVED') {
+        const response = await api.get('/inventory/alerts', { params: status ? { status } : undefined });
+        return response.data.data as InventoryAlert[];
+    },
+
+    async resolveAlert(id: string) {
+        const response = await api.patch(`/inventory/alerts/${id}/resolve`);
+        return response.data.data as InventoryAlert;
     },
 };
