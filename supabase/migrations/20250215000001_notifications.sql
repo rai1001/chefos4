@@ -1,14 +1,22 @@
 
-CREATE TYPE notification_type AS ENUM (
-  'LOW_STOCK',
-  'CUTOFF_WARNING',
-  'ORDER_RECEIVED',
-  'ORDER_LATE',
-  'EVENT_REMINDER',
-  'SYSTEM'
-);
+DO $$ BEGIN
+  CREATE TYPE notification_type AS ENUM (
+    'LOW_STOCK',
+    'CUTOFF_WARNING',
+    'ORDER_RECEIVED',
+    'ORDER_LATE',
+    'EVENT_REMINDER',
+    'SYSTEM'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TYPE notification_priority AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
+DO $$ BEGIN
+  CREATE TYPE notification_priority AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -37,6 +45,12 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   -- Índices
   CONSTRAINT valid_expiration CHECK (expires_at IS NULL OR expires_at > created_at)
 );
+
+ALTER TABLE public.notifications
+  ADD COLUMN IF NOT EXISTS read BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS read_at TIMESTAMPTZ NULL,
+  ADD COLUMN IF NOT EXISTS priority notification_priority DEFAULT 'MEDIUM',
+  ADD COLUMN IF NOT EXISTS type notification_type;
 
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_id, read) WHERE user_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_notifications_org ON public.notifications(organization_id, read);

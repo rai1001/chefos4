@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.employee_schedules (
 
 ALTER TABLE public.organization_members DROP CONSTRAINT IF EXISTS organization_members_role_check;
 ALTER TABLE public.organization_members ADD CONSTRAINT organization_members_role_check 
-    CHECK (role IN ('ORG_ADMIN', 'CHEF', 'WAITER', 'MANAGER', 'AREA_DIRECTOR'));
+    CHECK (role IN ('ORG_ADMIN', 'AREA_MANAGER', 'COOK', 'SERVER'));
 
 -- RLS Policies
 
@@ -48,7 +48,7 @@ CREATE POLICY "Admins can manage invitations" ON public.user_invitations
             SELECT 1 FROM public.organization_members
             WHERE organization_id = user_invitations.organization_id
             AND user_id = auth.uid()
-            AND role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+            AND role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -73,11 +73,19 @@ CREATE POLICY "Managers can manage schedules" ON public.employee_schedules
             SELECT 1 FROM public.organization_members
             WHERE organization_id = employee_schedules.organization_id
             AND user_id = auth.uid()
-            AND role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+            AND role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
 -- Functions & Triggers
+CREATE OR REPLACE FUNCTION update_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER update_employee_schedules_modtime
     BEFORE UPDATE ON public.employee_schedules
     FOR EACH ROW EXECUTE FUNCTION update_modified_column();

@@ -151,7 +151,7 @@ CREATE POLICY "Managers can manage staff profiles" ON public.staff_profiles
             SELECT 1 FROM public.organization_members
             WHERE organization_id = staff_profiles.organization_id
               AND user_id = auth.uid()
-              AND role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -173,7 +173,7 @@ CREATE POLICY "Managers can manage staff contracts" ON public.staff_contracts
             JOIN public.organization_members om ON om.organization_id = sp.organization_id
             WHERE sp.id = staff_contracts.staff_id
               AND om.user_id = auth.uid()
-              AND om.role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND om.role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -205,7 +205,7 @@ CREATE POLICY "Managers can manage time off" ON public.staff_time_off
             JOIN public.organization_members om ON om.organization_id = sp.organization_id
             WHERE sp.id = staff_time_off.staff_id
               AND om.user_id = auth.uid()
-              AND om.role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND om.role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -227,7 +227,7 @@ CREATE POLICY "Managers can manage vacation balance" ON public.staff_vacation_ba
             JOIN public.organization_members om ON om.organization_id = sp.organization_id
             WHERE sp.id = staff_vacation_balance.staff_id
               AND om.user_id = auth.uid()
-              AND om.role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND om.role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -247,7 +247,7 @@ CREATE POLICY "Managers can manage schedule months" ON public.schedule_months
             SELECT 1 FROM public.organization_members
             WHERE organization_id = schedule_months.organization_id
               AND user_id = auth.uid()
-              AND role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -266,7 +266,7 @@ CREATE POLICY "Managers can manage shift templates" ON public.shift_templates
             SELECT 1 FROM public.organization_members
             WHERE organization_id = shift_templates.organization_id
               AND user_id = auth.uid()
-              AND role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -285,7 +285,7 @@ CREATE POLICY "Managers can manage shifts" ON public.shifts
             SELECT 1 FROM public.organization_members
             WHERE organization_id = shifts.organization_id
               AND user_id = auth.uid()
-              AND role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
 
@@ -306,6 +306,6 @@ CREATE POLICY "Managers can manage shift assignments" ON public.shift_assignment
             JOIN public.organization_members om ON om.organization_id = sp.organization_id
             WHERE sp.id = shift_assignments.staff_id
               AND om.user_id = auth.uid()
-              AND om.role IN ('ORG_ADMIN', 'MANAGER', 'AREA_DIRECTOR')
+              AND om.role IN ('ORG_ADMIN', 'AREA_MANAGER')
         )
     );
