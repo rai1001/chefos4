@@ -19,7 +19,7 @@ const eventSchema = z.object({
     name: z.string().min(2, "Name required"),
     event_type: z.enum(["BANQUET", "A_LA_CARTE", "SPORTS_MULTI", "COFFEE", "BUFFET"]),
     date_start: z.string().min(1, "Start date required"),
-    date_end: z.string().min(1, "End date required"),
+    date_end: z.string().optional().or(z.literal("")),
     pax: z.coerce.number().min(1, "At least 1 pax"),
     menus: z.array(z.object({
         recipe_id: z.string().uuid(),
@@ -98,12 +98,20 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
     };
 
     const onSubmit = async (data: EventFormValues) => {
+        const dateStartIso = new Date(data.date_start).toISOString();
+        const dateEndIso = data.date_end ? new Date(data.date_end).toISOString() : undefined;
+        const payload: CreateEventDto = {
+            ...data,
+            date_start: dateStartIso,
+            date_end: dateEndIso,
+        };
+
         try {
             if (initialData) {
-                await eventsService.update(initialData.id, data);
+                await eventsService.update(initialData.id, payload);
                 toast({ title: "Evento actualizado" });
             } else {
-                await eventsService.create(data as CreateEventDto);
+                await eventsService.create(payload);
                 toast({ title: "Evento creado exitosamente" });
             }
             onSuccess();

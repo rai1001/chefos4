@@ -30,24 +30,41 @@ const upload = multer({
     },
 });
 
+const getImportBuffer = (file: any): Buffer => {
+    const isSpreadsheet =
+        file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.mimetype === 'application/vnd.ms-excel' ||
+        file.originalname.endsWith('.xlsx') ||
+        file.originalname.endsWith('.xls');
 
-export class IngredientsController {
-    private getImportBuffer(file: any): Buffer {
-        const isSpreadsheet =
-            file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-            file.mimetype === 'application/vnd.ms-excel' ||
-            file.originalname.endsWith('.xlsx') ||
-            file.originalname.endsWith('.xls');
+    if (!isSpreadsheet) return file.buffer;
 
-        if (!isSpreadsheet) return file.buffer;
-
+    try {
         const workbook = XLSX.read(file.buffer, { type: 'buffer' });
         const sheetName = workbook.SheetNames[0];
+
+        if (!sheetName) {
+            throw new AppError(400, 'Excel file has no sheets');
+        }
+
         const sheet = workbook.Sheets[sheetName];
         const csv = XLSX.utils.sheet_to_csv(sheet);
 
+        if (!csv.trim()) {
+            throw new AppError(400, 'Excel file is empty');
+        }
+
         return Buffer.from(csv, 'utf8');
+    } catch (error: any) {
+        if (error instanceof AppError) {
+            throw error;
+        }
+        throw new AppError(400, 'Invalid Excel file');
     }
+};
+
+
+export class IngredientsController {
     async getAll(req: AuthRequest, res: Response): Promise<void> {
         try {
             const orgIds = req.user!.organizationIds;
@@ -329,7 +346,7 @@ export class IngredientsController {
             const organizationId = req.user!.organizationIds[0];
             const importer = new CSVImporterService();
 
-            const buffer = this.getImportBuffer(file);
+            const buffer = getImportBuffer(file);
             const analysis = await importer.analyzeCSV(buffer, organizationId);
 
 
@@ -339,7 +356,11 @@ export class IngredientsController {
                 res.status(error.statusCode).json({ error: error.message });
                 return;
             }
-            logger.error('Error analyzing CSV:', error);
+            logger.error({ err: error }, 'Error analyzing CSV');
+            if (error instanceof AppError) {
+                res.status(error.statusCode).json({ error: error.message });
+                return;
+            }
             res.status(500).json({ error: 'Failed to analyze CSV' });
         }
     }
@@ -359,7 +380,7 @@ export class IngredientsController {
             const organizationId = req.user!.organizationIds[0];
             const importer = new CSVImporterService();
 
-            const buffer = this.getImportBuffer(file);
+            const buffer = getImportBuffer(file);
             const result = await importer.executeImport(
                 buffer,
                 organizationId,
@@ -373,7 +394,11 @@ export class IngredientsController {
                 res.status(error.statusCode).json({ error: error.message });
                 return;
             }
-            logger.error('Error importing CSV:', error);
+            logger.error({ err: error }, 'Error importing CSV');
+            if (error instanceof AppError) {
+                res.status(error.statusCode).json({ error: error.message });
+                return;
+            }
             res.status(500).json({ error: 'Failed to import CSV' });
         }
     }

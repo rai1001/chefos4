@@ -16,12 +16,15 @@ import {
 import { CSVImportWizard } from '@/components/ingredients/CSVImportWizard';
 import { Download } from 'lucide-react';
 import { api } from '@/services/api';
+import { Ingredient } from '@/services/ingredients.service';
 
 
 export default function Ingredients() {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
 
 
     const { data, isLoading } = useIngredients({ page, limit: 20, search });
@@ -93,6 +96,26 @@ export default function Ingredients() {
                             <IngredientForm onSuccess={() => setIsCreateOpen(false)} />
                         </DialogContent>
                     </Dialog>
+
+                    <Dialog
+                        open={isEditOpen}
+                        onOpenChange={(open) => {
+                            setIsEditOpen(open);
+                            if (!open) setSelectedIngredient(null);
+                        }}
+                    >
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Editar Ingrediente</DialogTitle>
+                            </DialogHeader>
+                            {selectedIngredient && (
+                                <IngredientForm
+                                    ingredient={selectedIngredient}
+                                    onSuccess={() => setIsEditOpen(false)}
+                                />
+                            )}
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 
@@ -129,6 +152,10 @@ export default function Ingredients() {
                 pagination={data?.pagination}
                 isLoading={isLoading}
                 onPageChange={setPage}
+                onEdit={(ingredient) => {
+                    setSelectedIngredient(ingredient);
+                    setIsEditOpen(true);
+                }}
             />
         </div>
     );

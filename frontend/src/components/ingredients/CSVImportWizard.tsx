@@ -11,6 +11,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useSuppliers } from '@/hooks/useSuppliers';
+import { useProductFamilies } from '@/hooks/useProductFamilies';
 import { api } from '@/services/api';
 
 
@@ -21,6 +22,7 @@ interface ConflictResolution {
     supplier_name: string;
     action: 'CREATE' | 'LINK';
     link_to_id?: string;
+    default_family_id?: string;
 }
 
 
@@ -48,6 +50,7 @@ export function CSVImportWizard({ onComplete }: { onComplete?: () => void }) {
 
 
     const { data: suppliers } = useSuppliers();
+    const { data: families } = useProductFamilies();
 
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -266,6 +269,35 @@ export function CSVImportWizard({ onComplete }: { onComplete?: () => void }) {
                                         </Select>
                                     </div>
                                 </div>
+
+                                {resolution.action === 'CREATE' && (
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm text-muted-foreground">
+                                            Familia por defecto (opcional)
+                                        </span>
+                                        <Select
+                                            value={resolution.default_family_id || '__none__'}
+                                            onValueChange={(value) =>
+                                                updateResolution(resolution.supplier_name, {
+                                                    default_family_id:
+                                                        value === '__none__' ? undefined : value,
+                                                })
+                                            }
+                                        >
+                                            <SelectTrigger className="h-9 w-[240px]">
+                                                <SelectValue placeholder="Sin familia" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="__none__">Sin familia</SelectItem>
+                                                {(families || []).map((family: any) => (
+                                                    <SelectItem key={family.id} value={family.id}>
+                                                        {family.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

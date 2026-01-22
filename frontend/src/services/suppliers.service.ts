@@ -8,6 +8,7 @@ export interface Supplier {
     lead_time_days: number;
     cut_off_time?: string;
     delivery_days: number[];
+    default_family_id?: string | null;
     cutoff_status?: {
         minutes_until_cutoff: number | null;
         is_delivery_day: boolean;
@@ -23,6 +24,7 @@ export interface CreateSupplierDto {
     lead_time_days?: number;
     cut_off_time?: string;
     delivery_days?: number[];
+    default_family_id?: string | null;
 }
 
 export const suppliersService = {

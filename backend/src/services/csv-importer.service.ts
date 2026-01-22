@@ -17,7 +17,67 @@ interface ConflictResolution {
     supplier_name: string;
     action: 'CREATE' | 'LINK';
     link_to_id?: string; // Si action = LINK
+    default_family_id?: string | null;
 }
+
+const normalizeKey = (key: string): string =>
+    key
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '');
+
+const normalizeValue = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'number') return value.toString();
+    return String(value).trim();
+};
+
+const mapRow = (row: Record<string, any>): CSVRow => {
+    const normalizedRow: Record<string, string> = {};
+    for (const [key, value] of Object.entries(row)) {
+        if (!key) continue;
+        normalizedRow[normalizeKey(key)] = normalizeValue(value);
+    }
+
+    const getValue = (keys: string[]) => {
+        for (const key of keys) {
+            const value = normalizedRow[key];
+            if (value) return value;
+        }
+        return '';
+    };
+
+    return {
+        nombre_articulo: getValue([
+            'nombrearticulo',
+            'articulo',
+            'producto',
+            'nombre',
+            'descripcion',
+            'item',
+            'material',
+        ]),
+        proveedor: getValue(['proveedor', 'supplier', 'vendor']),
+        precio: getValue([
+            'precio',
+            'coste',
+            'costo',
+            'price',
+            'preciounitario',
+            'costeunitario',
+        ]),
+        unidad: getValue([
+            'unidad',
+            'ud',
+            'un',
+            'uom',
+            'unit',
+            'unidadmedida',
+        ]),
+        familia: getValue(['familia', 'categoria', 'category']),
+    };
+};
 
 
 export class CSVImporterService {
@@ -40,13 +100,7 @@ export class CSVImporterService {
             Readable.from(fileBuffer)
                 .pipe(csv())
                 .on('data', (row: any) => {
-                    rows.push({
-                        nombre_articulo: row['Nombre Artículo'] || row['nombre_articulo'],
-                        proveedor: row['Proveedor'] || row['proveedor'],
-                        precio: row['Precio'] || row['precio'],
-                        unidad: row['Unidad'] || row['unidad'],
-                        familia: row['Familia'] || row['familia'],
-                    });
+                    rows.push(mapRow(row));
                 })
                 .on('end', resolve)
                 .on('error', reject);
@@ -106,13 +160,7 @@ export class CSVImporterService {
             Readable.from(fileBuffer)
                 .pipe(csv())
                 .on('data', (row: any) => {
-                    rows.push({
-                        nombre_articulo: row['Nombre Artículo'] || row['nombre_articulo'],
-                        proveedor: row['Proveedor'] || row['proveedor'],
-                        precio: row['Precio'] || row['precio'],
-                        unidad: row['Unidad'] || row['unidad'],
-                        familia: row['Familia'] || row['familia'],
-                    });
+                    rows.push(mapRow(row));
                 })
                 .on('end', resolve)
                 .on('error', reject);
@@ -151,7 +199,11 @@ export class CSVImporterService {
                     continue;
                 }
 
-                const { id: supplierId, created: supplierCreated } = supplierResult;
+                const {
+                    id: supplierId,
+                    created: supplierCreated,
+                    default_family_id: supplierDefaultFamilyId,
+                } = supplierResult;
                 if (supplierCreated) createdSuppliers++;
 
 
@@ -169,6 +221,8 @@ export class CSVImporterService {
                 let familyId = null;
                 if (row.familia) {
                     familyId = await this.resolveFamily(row.familia.trim(), organizationId);
+                } else if (supplierDefaultFamilyId) {
+                    familyId = supplierDefaultFamilyId;
                 }
 
 
@@ -236,21 +290,25 @@ export class CSVImporterService {
         name: string,
         organizationId: string,
         resolutions: Map<string, ConflictResolution>
-    ): Promise<{ id: string; created: boolean } | null> {
+    ): Promise<{ id: string; created: boolean; default_family_id?: string | null } | null> {
         const nameLower = name.toLowerCase();
 
 
         // Buscar en BD
         const { data: existing } = await supabase
             .from('suppliers')
-            .select('id')
+            .select('id, default_family_id')
             .eq('organization_id', organizationId)
             .ilike('name', name)
             .maybeSingle();
 
 
         if (existing) {
-            return { id: existing.id, created: false };
+            return {
+                id: existing.id,
+                created: false,
+                default_family_id: existing.default_family_id ?? null,
+            };
         }
 
 
@@ -264,7 +322,24 @@ export class CSVImporterService {
 
 
         if (resolution.action === 'LINK') {
-            return resolution.link_to_id ? { id: resolution.link_to_id, created: false } : null;
+            if (!resolution.link_to_id) {
+                return null;
+            }
+
+            const { data: linkedSupplier } = await supabase
+                .from('suppliers')
+                .select('id, default_family_id')
+                .eq('organization_id', organizationId)
+                .eq('id', resolution.link_to_id)
+                .maybeSingle();
+
+            return linkedSupplier
+                ? {
+                      id: linkedSupplier.id,
+                      created: false,
+                      default_family_id: linkedSupplier.default_family_id ?? null,
+                  }
+                : null;
         }
 
 
@@ -274,8 +349,9 @@ export class CSVImporterService {
             .insert({
                 organization_id: organizationId,
                 name: name,
+                default_family_id: resolution.default_family_id ?? null,
             })
-            .select('id')
+            .select('id, default_family_id')
             .single();
 
         if (error) {
@@ -284,7 +360,13 @@ export class CSVImporterService {
         }
 
 
-        return newSupplier ? { id: newSupplier.id, created: true } : null;
+        return newSupplier
+            ? {
+                  id: newSupplier.id,
+                  created: true,
+                  default_family_id: newSupplier.default_family_id ?? null,
+              }
+            : null;
     }
 
 

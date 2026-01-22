@@ -35,6 +35,7 @@ interface IngredientsListProps {
     };
     isLoading: boolean;
     onPageChange: (page: number) => void;
+    onEdit?: (ingredient: Ingredient) => void;
 }
 
 
@@ -43,6 +44,7 @@ export function IngredientsList({
     pagination,
     isLoading,
     onPageChange,
+    onEdit,
 }: IngredientsListProps) {
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const deleteMutation = useDeleteIngredient();
@@ -107,7 +109,12 @@ export function IngredientsList({
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" iconOnly>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            iconOnly
+                                            onClick={() => onEdit?.(ingredient)}
+                                        >
                                             <Edit className="h-4 w-4" />
                                         </Button>
                                         <Button

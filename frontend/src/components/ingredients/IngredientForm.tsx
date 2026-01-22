@@ -21,14 +21,16 @@ import {
 import { useCreateIngredient, useUpdateIngredient } from '@/hooks/useIngredients';
 import { useSuppliers } from '@/hooks/useSuppliers';
 import { useUnits } from '@/hooks/useUnits';
-import { useProductFamilies } from '@/hooks/useProductFamilies'; // Assuming this hook exists or I'll need to mock/create it
+import { useProductFamilies } from '@/hooks/useProductFamilies';
 import { Ingredient } from '@/services/ingredients.service';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { productFamiliesService } from '@/services/product-families.service';
 
 // Form Schema
 const formSchema = z.object({
     name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    family_id: z.string().uuid('Selecciona una familia válida'),
+    family_id: z.string().uuid('Selecciona una familia válida').optional().or(z.literal('__none__')),
     supplier_id: z.string().uuid('Selecciona un proveedor válido'),
     stock_current: z.coerce.number().min(0, 'El stock no puede ser negativo'),
     stock_min: z.coerce.number().min(0, 'El stock mínimo no puede ser negativo'),
@@ -46,19 +48,21 @@ interface IngredientFormProps {
 export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
     const createMutation = useCreateIngredient();
     const updateMutation = useUpdateIngredient();
+    const queryClient = useQueryClient();
     const { data: suppliersResponse } = useSuppliers();
     const { data: families } = useProductFamilies();
     const { data: units } = useUnits();
     const suppliers = Array.isArray(suppliersResponse)
         ? suppliersResponse
         : suppliersResponse?.data ?? [];
-    // const { data: families } = useProductFamilies(); // TODO: Implement if missing or use mock
+    const [newFamilyName, setNewFamilyName] = useState('');
+    const [isCreatingFamily, setIsCreatingFamily] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: '',
-            family_id: '',
+            family_id: '__none__',
             supplier_id: '',
             unit_id: '',
             stock_current: 0,
@@ -71,7 +75,7 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
         if (ingredient) {
             form.reset({
                 name: ingredient.name ?? '',
-                family_id: ingredient.family_id ?? '',
+                family_id: ingredient.family_id ?? '__none__',
                 supplier_id: ingredient.supplier_id ?? '',
                 unit_id: ingredient.unit_id ?? '',
                 stock_current: ingredient.stock_current ?? 0,
@@ -81,24 +85,76 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
         }
     }, [ingredient, form]);
 
-    const onSubmit = (values: FormValues) => {
+    const onSubmit = async (values: FormValues) => {
+        const nameToCreate = newFamilyName.trim();
+        let familyId = values.family_id === '__none__' ? null : values.family_id;
+
+        if (nameToCreate) {
+            const existing = (families || []).find(
+                (family) => family.name.toLowerCase() === nameToCreate.toLowerCase()
+            );
+
+            if (existing) {
+                familyId = existing.id;
+                setNewFamilyName('');
+            } else {
+                setIsCreatingFamily(true);
+                try {
+                    const created = await productFamiliesService.create({ name: nameToCreate });
+                    await queryClient.invalidateQueries({ queryKey: ['product-families'] });
+                    familyId = created.id;
+                    setNewFamilyName('');
+                } catch (error) {
+                    // Keep the current family selection if creation fails.
+                } finally {
+                    setIsCreatingFamily(false);
+                }
+            }
+        }
+
+        const payload = {
+            ...values,
+            family_id: familyId,
+        };
+
         if (ingredient) {
             updateMutation.mutate(
-                { id: ingredient.id, data: values },
+                { id: ingredient.id, data: payload },
                 { onSuccess }
             );
         } else {
-            // Hardcode unit_id for now if not in form, or fetch units. 
-            // Assuming backend handles it or we pass a default.
-            // For MVP, let's assume we need to pass a valid UUID or existing unit.
-            // If the schema requires unit_id, we need to add it to the form.
-            // Let's assume 'Kg' unit exists or similar. 
-            // For safety, I will map the values directly.
-            createMutation.mutate(values as any, { onSuccess });
+            createMutation.mutate(payload as any, { onSuccess });
         }
     };
 
     const isLoading = createMutation.isPending || updateMutation.isPending;
+
+    const handleCreateFamily = async () => {
+        const name = newFamilyName.trim();
+        if (!name || isCreatingFamily) return;
+
+        const existing = (families || []).find(
+            (family) => family.name.toLowerCase() === name.toLowerCase()
+        );
+
+        if (existing) {
+            form.setValue('family_id', existing.id, { shouldDirty: true });
+            setNewFamilyName('');
+            return;
+        }
+
+        setIsCreatingFamily(true);
+        try {
+            const created = await productFamiliesService.create({ name });
+            await queryClient.invalidateQueries({ queryKey: ['product-families'] });
+            form.setValue('family_id', created.id, { shouldDirty: true });
+            setNewFamilyName('');
+        } catch (error) {
+            // noop: keeping UI simple, backend returns 409 on duplicates
+        } finally {
+            setIsCreatingFamily(false);
+        }
+    };
 
     return (
         <Form {...form}>
@@ -124,22 +180,23 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Familia</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select value={field.value} onValueChange={field.onChange}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Seleccionar..." />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                    {(families || []).map((family) => (
-                                        <SelectItem key={family.id} value={family.id}>
-                                            {family.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
+                                        <SelectItem value="__none__">Sin familia</SelectItem>
+                                        {(families || []).map((family) => (
+                                            <SelectItem key={family.id} value={family.id}>
+                                                {family.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
                         )}
                     />
 
@@ -149,7 +206,7 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Proveedor</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select value={field.value} onValueChange={field.onChange}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Seleccionar..." />
@@ -174,7 +231,7 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Unidad</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select value={field.value} onValueChange={field.onChange}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Seleccionar..." />
@@ -192,6 +249,27 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                             </FormItem>
                         )}
                     />
+                </div>
+
+                <div className="flex items-end gap-3">
+                    <FormItem className="flex-1">
+                        <FormLabel>Nueva familia</FormLabel>
+                        <FormControl>
+                            <Input
+                                placeholder="Ej: Verduras"
+                                value={newFamilyName}
+                                onChange={(e) => setNewFamilyName(e.target.value)}
+                            />
+                        </FormControl>
+                    </FormItem>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleCreateFamily}
+                        disabled={!newFamilyName.trim() || isCreatingFamily}
+                    >
+                        {isCreatingFamily ? 'Creando...' : 'Crear familia'}
+                    </Button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">

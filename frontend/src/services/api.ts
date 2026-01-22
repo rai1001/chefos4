@@ -20,6 +20,10 @@ class ApiService {
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
+                if (config.data instanceof FormData) {
+                    // Let the browser set the multipart boundary.
+                    delete config.headers['Content-Type'];
+                }
                 return config;
             },
             (error) => Promise.reject(error)

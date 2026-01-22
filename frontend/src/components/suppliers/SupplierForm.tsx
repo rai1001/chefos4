@@ -10,8 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useProductFamilies } from "@/hooks/useProductFamilies";
 
 const DAYS = [
     { value: 1, label: "L" },
@@ -30,6 +37,7 @@ const supplierSchema = z.object({
     lead_time_days: z.coerce.number().min(0).max(30),
     cut_off_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/, "Formato HH:MM requerido").optional().or(z.literal("")),
     delivery_days: z.array(z.number()).min(1, "Selecciona al menos un día de reparto"),
+    default_family_id: z.string().uuid().optional().or(z.literal("__none__")),
 });
 
 interface SupplierFormProps {
@@ -39,6 +47,8 @@ interface SupplierFormProps {
 
 export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
     const { toast } = useToast();
+    const { data: families } = useProductFamilies();
+    const familyNameById = new Map((families || []).map((family) => [family.id, family.name]));
     const defaultValues = initialData ? {
         name: initialData.name || "",
         contact_email: initialData.contact_email || "",
@@ -46,6 +56,7 @@ export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
         lead_time_days: initialData.lead_time_days ?? 2,
         cut_off_time: initialData.cut_off_time ? initialData.cut_off_time.slice(0, 5) : "",
         delivery_days: initialData.delivery_days?.length ? initialData.delivery_days : [1, 2, 3, 4, 5],
+        default_family_id: initialData.default_family_id || "__none__",
     } : {
         name: "",
         contact_email: "",
@@ -53,6 +64,7 @@ export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
         lead_time_days: 2,
         cut_off_time: "",
         delivery_days: [1, 2, 3, 4, 5],
+        default_family_id: "__none__",
     };
     const form = useForm<z.infer<typeof supplierSchema>>({
         resolver: zodResolver(supplierSchema),
@@ -69,7 +81,14 @@ export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
                 data.cut_off_time && data.cut_off_time.length === 5
                     ? `${data.cut_off_time}:00`
                     : data.cut_off_time || null;
-            const payload = { ...data, cut_off_time: cutOff };
+            const payload = {
+                ...data,
+                cut_off_time: cutOff,
+                default_family_id:
+                    data.default_family_id && data.default_family_id !== "__none__"
+                        ? data.default_family_id
+                        : null,
+            };
             if (initialData) {
                 await suppliersService.update(initialData.id, payload);
                 toast({ title: "Proveedor actualizado" });
@@ -121,6 +140,37 @@ export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
                         )}
                     />
                 </div>
+                <FormField
+                    control={form.control}
+                    name="default_family_id"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Familia por defecto (opcional)</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccionar..." />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="__none__">Sin familia</SelectItem>
+                                    {(families || []).map((family) => (
+                                        <SelectItem key={family.id} value={family.id}>
+                                            {family.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormDescription>
+                                Se usa en importaciones si la fila no trae familia.
+                                {field.value && field.value !== "__none__"
+                                    ? ` Actual: ${familyNameById.get(field.value) || 'Sin nombre'}.`
+                                    : ''}
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}

@@ -67,6 +67,7 @@ export class SuppliersController {
                 contact_email,
                 contact_phone,
                 lead_time_days,
+                default_family_id,
                 cut_off_time,
                 delivery_days,
             } = req.body;
@@ -90,6 +91,7 @@ export class SuppliersController {
                     contact_email,
                     contact_phone,
                     lead_time_days: lead_time_days || 2,
+                    default_family_id: default_family_id || null,
                     cut_off_time: normalizedCutoff,
                     delivery_days: delivery_days || [1, 2, 3, 4, 5],
                 })
@@ -119,6 +121,10 @@ export class SuppliersController {
             const { id } = req.params;
             const orgIds = req.user!.organizationIds;
             const updateData = req.body;
+
+            if ('default_family_id' in updateData && !updateData.default_family_id) {
+                updateData.default_family_id = null;
+            }
 
             const { data: existing } = await supabase
                 .from('suppliers')
