@@ -30,3 +30,4 @@ Este paquete contiene la arquitectura + sprints, separados en archivos `.md`.
 - `docs/sprints/sprint-14-permissions.md`
 - `docs/sprints/sprint-15-inventario-conectado.md`
 - `docs/sprints/sprint-16-horarios-cocina.md`
+- `docs/sprints/sprint-17-preparaciones-etiquetas.md`

@@ -27,6 +27,8 @@ import InventoryLocations from './pages/inventory/Locations';
 import StaffPage from './pages/schedule/Staff';
 import TimeOffPage from './pages/schedule/TimeOff';
 import SchedulePage from './pages/schedule/Schedule';
+import PreparationsCatalogPage from './pages/preparations/Catalog';
+import PreparationBatchesPage from './pages/preparations/Batches';
 
 function App() {
     const { isAuthenticated } = useAuthStore();
@@ -60,6 +62,8 @@ function App() {
                     <Route path="/staff" element={<StaffPage />} />
                     <Route path="/time-off" element={<TimeOffPage />} />
                     <Route path="/schedule" element={<SchedulePage />} />
+                    <Route path="/preparations" element={<PreparationsCatalogPage />} />
+                    <Route path="/preparations/batches" element={<PreparationBatchesPage />} />
                     <Route path="/hr" element={<HR />} />
                     <Route path="/organizations" element={<Organizations />} />
                     <Route path="/settings" element={<Settings />} />

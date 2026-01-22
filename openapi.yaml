@@ -39,6 +39,8 @@ tags:
     description: Staff time off requests and approvals
   - name: Schedules
     description: Monthly schedules and shifts
+  - name: Preparations
+    description: Preparations catalog and batches
 
 paths:
   /health:
@@ -754,6 +756,240 @@ paths:
       responses:
         '200':
           description: Assignments updated
+
+  /preparations:
+    get:
+      summary: List preparations
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Preparations list
+    post:
+      summary: Create preparation
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - unit_id
+              properties:
+                name:
+                  type: string
+                unit_id:
+                  type: string
+                default_shelf_life_days:
+                  type: integer
+                station:
+                  type: string
+                notes:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        '201':
+          description: Preparation created
+
+  /preparations/{id}:
+    patch:
+      summary: Update preparation
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                unit_id:
+                  type: string
+                default_shelf_life_days:
+                  type: integer
+                station:
+                  type: string
+                notes:
+                  type: string
+                active:
+                  type: boolean
+      responses:
+        '200':
+          description: Preparation updated
+
+  /preparations/{id}/batches:
+    post:
+      summary: Create preparation batch
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - produced_at
+                - quantity_produced
+              properties:
+                produced_at:
+                  type: string
+                  format: date
+                quantity_produced:
+                  type: number
+                expiry_date:
+                  type: string
+                  format: date
+                lot_code:
+                  type: string
+                storage_location_id:
+                  type: string
+                ingredients:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ingredient_id:
+                        type: string
+                      unit_id:
+                        type: string
+                      quantity_used:
+                        type: number
+      responses:
+        '201':
+          description: Preparation batch created
+
+  /preparations/batches:
+    get:
+      summary: List preparation batches
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: expiring_in_days
+          schema:
+            type: integer
+        - in: query
+          name: location_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Preparation batches list
+
+  /preparations/batches/{id}:
+    patch:
+      summary: Update preparation batch
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expiry_date:
+                  type: string
+                  format: date
+                storage_location_id:
+                  type: string
+                quantity_current:
+                  type: number
+                lot_code:
+                  type: string
+      responses:
+        '200':
+          description: Preparation batch updated
+
+  /preparations/batches/{id}/labels/print:
+    post:
+      summary: Print preparation batch labels
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label_count:
+                  type: integer
+      responses:
+        '200':
+          description: PDF labels
+
+  /preparations/batches/{id}/expiry/scan:
+    post:
+      summary: Scan expiry date for preparation batch
+      tags:
+        - Preparations
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Expiry candidates
 
 components:
   schemas:

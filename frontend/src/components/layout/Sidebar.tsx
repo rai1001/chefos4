@@ -19,6 +19,8 @@ import {
     MapPin,
     CalendarDays,
     CalendarOff,
+    FlaskConical,
+    Tag,
 } from 'lucide-react';
 
 const navigation = [
@@ -38,6 +40,8 @@ const navigation = [
     { name: 'Equipo', href: '/staff', icon: Users },
     { name: 'Ausencias', href: '/time-off', icon: CalendarOff },
     { name: 'Horario', href: '/schedule', icon: CalendarDays },
+    { name: 'Preparaciones - Catalogo', href: '/preparations', icon: FlaskConical },
+    { name: 'Preparaciones - Lotes', href: '/preparations/batches', icon: Tag },
     { name: 'Personal', href: '/hr', icon: Users },
     { name: 'Hoteles', href: '/organizations', icon: Hotel },
     { name: 'Configuración', href: '/settings', icon: Settings },
