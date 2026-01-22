@@ -77,6 +77,11 @@ export class SuppliersController {
                 throw new AppError(400, 'At least one delivery day must be specified');
             }
 
+            const normalizedCutoff =
+                typeof cut_off_time === 'string' && cut_off_time.length === 5
+                    ? `${cut_off_time}:00`
+                    : cut_off_time ?? null;
+
             const { data, error } = await supabase
                 .from('suppliers')
                 .insert({
@@ -85,7 +90,7 @@ export class SuppliersController {
                     contact_email,
                     contact_phone,
                     lead_time_days: lead_time_days || 2,
-                    cut_off_time,
+                    cut_off_time: normalizedCutoff,
                     delivery_days: delivery_days || [1, 2, 3, 4, 5],
                 })
                 .select()

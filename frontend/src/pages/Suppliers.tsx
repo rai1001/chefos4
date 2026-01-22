@@ -86,7 +86,8 @@ export default function Suppliers() {
                             <thead className="bg-muted/50 border-b">
                                 <tr>
                                     <th className="px-4 py-3 text-left font-medium">Nombre</th>
-                                    <th className="px-4 py-3 text-left font-medium">Contacto</th>
+                                    <th className="px-4 py-3 text-left font-medium">Email</th>
+                                    <th className="px-4 py-3 text-left font-medium">Telefono</th>
                                     <th className="px-4 py-3 text-left font-medium">Lead Time</th>
                                     <th className="px-4 py-3 text-left font-medium">Próximo Cierre</th>
                                     <th className="px-4 py-3 text-right font-medium">Acciones</th>
@@ -94,18 +95,30 @@ export default function Suppliers() {
                             </thead>
                             <tbody className="divide-y">
                                 {isLoading ? (
-                                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Cargando...</td></tr>
+                                    <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">Cargando...</td></tr>
                                 ) : suppliers?.data.length === 0 ? (
-                                    <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No se encontraron proveedores</td></tr>
+                                    <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">No se encontraron proveedores</td></tr>
                                 ) : (
                                     suppliers?.data.map((supplier) => (
                                         <tr key={supplier.id} className="hover:bg-muted/30 transition-colors">
                                             <td className="px-4 py-3 font-medium">{supplier.name}</td>
                                             <td className="px-4 py-3">
-                                                <div className="flex flex-col gap-1">
-                                                    {supplier.contact_email && <div className="flex items-center text-xs gap-1"><Mail className="w-3 h-3" /> {supplier.contact_email}</div>}
-                                                    {supplier.contact_phone && <div className="flex items-center text-xs gap-1"><Phone className="w-3 h-3" /> {supplier.contact_phone}</div>}
-                                                </div>
+                                                {supplier.contact_email ? (
+                                                    <div className="flex items-center text-xs gap-1">
+                                                        <Mail className="w-3 h-3" /> {supplier.contact_email}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">-</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {supplier.contact_phone ? (
+                                                    <div className="flex items-center text-xs gap-1">
+                                                        <Phone className="w-3 h-3" /> {supplier.contact_phone}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">-</span>
+                                                )}
                                             </td>
                                             <td className="px-4 py-3">{supplier.lead_time_days} días</td>
                                             <td className="px-4 py-3">

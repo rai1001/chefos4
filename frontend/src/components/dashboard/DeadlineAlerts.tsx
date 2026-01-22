@@ -7,8 +7,13 @@ import { Button } from '@/components/ui/button';
 import { eventsService } from '@/services/events.service';
 import { format, addDays, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
-export function DeadlineAlerts() {
+interface DeadlineAlertsProps {
+    className?: string;
+}
+
+export function DeadlineAlerts({ className }: DeadlineAlertsProps) {
     const { data: events, isLoading } = useQuery({
         queryKey: ['urgent-events'],
         queryFn: async () => {
@@ -31,7 +36,7 @@ export function DeadlineAlerts() {
     const urgentCount = events?.length || 0;
 
     return (
-        <Card className={urgentCount > 0 ? "border-orange-200 shadow-md" : ""}>
+        <Card className={cn(urgentCount > 0 ? "border-orange-200 shadow-md" : "", className)}>
             <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                     <AlertCircle className={urgentCount > 0 ? "text-orange-500" : "text-muted-foreground"} />

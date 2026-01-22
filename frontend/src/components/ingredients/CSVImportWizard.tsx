@@ -162,7 +162,7 @@ export function CSVImportWizard({ onComplete }: { onComplete?: () => void }) {
                     <Alert>
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
-                            El CSV debe contener las columnas: Nombre Artículo,{' '}
+                            El archivo CSV/Excel debe contener las columnas: Nombre Artículo,{' '}
                             Proveedor, Precio, Unidad
                         </AlertDescription>
                     </Alert>
@@ -173,7 +173,7 @@ export function CSVImportWizard({ onComplete }: { onComplete?: () => void }) {
                             <Upload className="h-12 w-12 text-muted-foreground mb-4" />
                             <div className="text-center">
                                 <p className="text-lg font-medium">
-                                    Selecciona un archivo CSV
+                                    Selecciona un archivo CSV o Excel
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                     Arrastra y suelta o haz clic para buscar
@@ -182,7 +182,7 @@ export function CSVImportWizard({ onComplete }: { onComplete?: () => void }) {
                             <input
                                 type="file"
                                 className="hidden"
-                                accept=".csv"
+                                accept=".csv,.xlsx,.xls"
                                 onChange={handleFileSelect}
                             />
                         </label>

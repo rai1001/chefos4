@@ -45,7 +45,7 @@ export default function Ingredients() {
                         <DialogTrigger asChild>
                             <Button variant="outline" className="btn-large">
                                 <Upload className="mr-2 h-5 w-5" />
-                                Importar CSV
+                        Importar CSV/Excel
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl">

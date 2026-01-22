@@ -5,6 +5,7 @@ import { logger } from '@/utils/logger';
 import { AppError } from '@/utils/errors';
 import multer from 'multer';
 import { CSVImporterService } from '@/services/csv-importer.service';
+import * as XLSX from 'xlsx';
 
 
 // Configurar multer
@@ -14,16 +15,39 @@ const upload = multer({
         fileSize: 10 * 1024 * 1024, // 10MB
     },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+        const isCsv = file.mimetype === 'text/csv' || file.originalname.endsWith('.csv');
+        const isXlsx =
+            file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+            file.mimetype === 'application/vnd.ms-excel' ||
+            file.originalname.endsWith('.xlsx') ||
+            file.originalname.endsWith('.xls');
+
+        if (isCsv || isXlsx) {
             cb(null, true);
         } else {
-            cb(new Error('Only CSV files allowed'));
+            cb(new Error('Only CSV or Excel files allowed'));
         }
     },
 });
 
 
 export class IngredientsController {
+    private getImportBuffer(file: any): Buffer {
+        const isSpreadsheet =
+            file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+            file.mimetype === 'application/vnd.ms-excel' ||
+            file.originalname.endsWith('.xlsx') ||
+            file.originalname.endsWith('.xls');
+
+        if (!isSpreadsheet) return file.buffer;
+
+        const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const csv = XLSX.utils.sheet_to_csv(sheet);
+
+        return Buffer.from(csv, 'utf8');
+    }
     async getAll(req: AuthRequest, res: Response): Promise<void> {
         try {
             const orgIds = req.user!.organizationIds;
@@ -305,8 +329,8 @@ export class IngredientsController {
             const organizationId = req.user!.organizationIds[0];
             const importer = new CSVImporterService();
 
-
-            const analysis = await importer.analyzeCSV(file.buffer, organizationId);
+            const buffer = this.getImportBuffer(file);
+            const analysis = await importer.analyzeCSV(buffer, organizationId);
 
 
             res.json(analysis);
@@ -335,9 +359,9 @@ export class IngredientsController {
             const organizationId = req.user!.organizationIds[0];
             const importer = new CSVImporterService();
 
-
+            const buffer = this.getImportBuffer(file);
             const result = await importer.executeImport(
-                file.buffer,
+                buffer,
                 organizationId,
                 JSON.parse(resolutions || '[]')
             );

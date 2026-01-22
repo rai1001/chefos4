@@ -10,6 +10,7 @@ import { rateLimitMiddleware } from '@/middleware/rate-limit.middleware';
 // Routes
 import authRoutes from '@/routes/auth.routes';
 import ingredientsRoutes from '@/routes/ingredients.routes';
+import unitsRoutes from '@/routes/units.routes';
 import suppliersRoutes from '@/routes/suppliers.routes';
 import eventsRoutes from '@/routes/events.routes';
 import recipesRoutes from '@/routes/recipes.routes';
@@ -85,6 +86,7 @@ const apiPrefix = `/api/${API_VERSION}`;
 
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/ingredients`, ingredientsRoutes);
+app.use(`${apiPrefix}/units`, unitsRoutes);
 app.use(`${apiPrefix}/suppliers`, suppliersRoutes);
 app.use(`${apiPrefix}/events`, eventsRoutes);
 app.use(`${apiPrefix}/recipes`, recipesRoutes);

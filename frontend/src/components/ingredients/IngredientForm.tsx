@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { useCreateIngredient, useUpdateIngredient } from '@/hooks/useIngredients';
 import { useSuppliers } from '@/hooks/useSuppliers';
+import { useUnits } from '@/hooks/useUnits';
 import { useProductFamilies } from '@/hooks/useProductFamilies'; // Assuming this hook exists or I'll need to mock/create it
 import { Ingredient } from '@/services/ingredients.service';
 import { useEffect } from 'react';
@@ -27,12 +28,12 @@ import { useEffect } from 'react';
 // Form Schema
 const formSchema = z.object({
     name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    product_family_id: z.string().uuid('Selecciona una familia válida'),
+    family_id: z.string().uuid('Selecciona una familia válida'),
     supplier_id: z.string().uuid('Selecciona un proveedor válido'),
     stock_current: z.coerce.number().min(0, 'El stock no puede ser negativo'),
     stock_min: z.coerce.number().min(0, 'El stock mínimo no puede ser negativo'),
     cost_price: z.coerce.number().min(0, 'El precio no puede ser negativo'),
-    unit_id: z.string().optional(), // We might need units from backend too
+    unit_id: z.string().uuid('Selecciona una unidad válida'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -45,13 +46,21 @@ interface IngredientFormProps {
 export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
     const createMutation = useCreateIngredient();
     const updateMutation = useUpdateIngredient();
-    const { data: suppliers } = useSuppliers();
+    const { data: suppliersResponse } = useSuppliers();
+    const { data: families } = useProductFamilies();
+    const { data: units } = useUnits();
+    const suppliers = Array.isArray(suppliersResponse)
+        ? suppliersResponse
+        : suppliersResponse?.data ?? [];
     // const { data: families } = useProductFamilies(); // TODO: Implement if missing or use mock
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: '',
+            family_id: '',
+            supplier_id: '',
+            unit_id: '',
             stock_current: 0,
             stock_min: 0,
             cost_price: 0,
@@ -61,12 +70,13 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
     useEffect(() => {
         if (ingredient) {
             form.reset({
-                name: ingredient.name,
-                product_family_id: ingredient.product_family_id,
-                supplier_id: ingredient.supplier_id,
-                stock_current: ingredient.stock_current,
-                stock_min: ingredient.stock_min,
-                cost_price: ingredient.cost_price,
+                name: ingredient.name ?? '',
+                family_id: ingredient.family_id ?? '',
+                supplier_id: ingredient.supplier_id ?? '',
+                unit_id: ingredient.unit_id ?? '',
+                stock_current: ingredient.stock_current ?? 0,
+                stock_min: ingredient.stock_min ?? 0,
+                cost_price: ingredient.cost_price ?? 0,
             });
         }
     }, [ingredient, form]);
@@ -107,10 +117,10 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                     )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                     <FormField
                         control={form.control}
-                        name="product_family_id"
+                        name="family_id"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Familia</FormLabel>
@@ -121,13 +131,15 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {/* TODO: Load real families */}
-                                        <SelectItem value="d290f1ee-6c54-4b01-90e6-d701748f0851">Carnes</SelectItem>
-                                        <SelectItem value="e290f1ee-6c54-4b01-90e6-d701748f0852">Verduras</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
+                                    {(families || []).map((family) => (
+                                        <SelectItem key={family.id} value={family.id}>
+                                            {family.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
                         )}
                     />
 
@@ -147,6 +159,31 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                                         {suppliers?.map((s) => (
                                             <SelectItem key={s.id} value={s.id}>
                                                 {s.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="unit_id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Unidad</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar..." />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {(units || []).map((unit) => (
+                                            <SelectItem key={unit.id} value={unit.id}>
+                                                {unit.name} ({unit.abbreviation})
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

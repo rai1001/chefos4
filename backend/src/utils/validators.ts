@@ -24,8 +24,11 @@ export const createSupplierSchema = z.object({
         name: z.string().min(2, 'El nombre es obligatorio'),
         contact_email: z.string().email('Email inválido').optional().or(z.literal('')),
         contact_phone: z.string().optional(),
-        lead_time_days: z.number().min(0).optional(),
-        cut_off_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/, 'Formato de hora inválido (HH:mm)').optional(),
+        lead_time_days: z.coerce.number().min(0).optional(),
+        cut_off_time: z.preprocess(
+            (value) => (value === '' || value === null ? undefined : value),
+            z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/, 'Formato de hora inválido (HH:mm)').optional()
+        ),
         delivery_days: z.array(z.number().min(1).max(7)).optional(),
     }),
 });

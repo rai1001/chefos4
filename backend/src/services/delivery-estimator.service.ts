@@ -49,9 +49,10 @@ export class DeliveryEstimatorService {
     }
 
     calculateTimeUntilCutoff(cutOffTime: string, currentTime: Date = new Date()): number {
-        const [h, m, s] = cutOffTime.split(':').map(Number);
+        const [h, m, sRaw] = cutOffTime.split(':');
+        const s = sRaw ? Number(sRaw) : 0;
         const cutoff = new Date(currentTime);
-        cutoff.setHours(h, m, s, 0);
+        cutoff.setHours(Number(h), Number(m), Number.isFinite(s) ? s : 0, 0);
         return Math.floor((cutoff.getTime() - currentTime.getTime()) / 60000);
     }
 

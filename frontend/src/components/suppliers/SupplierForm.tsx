@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -38,25 +39,37 @@ interface SupplierFormProps {
 
 export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
     const { toast } = useToast();
+    const defaultValues = initialData ? {
+        name: initialData.name || "",
+        contact_email: initialData.contact_email || "",
+        contact_phone: initialData.contact_phone || "",
+        lead_time_days: initialData.lead_time_days ?? 2,
+        cut_off_time: initialData.cut_off_time ? initialData.cut_off_time.slice(0, 5) : "",
+        delivery_days: initialData.delivery_days?.length ? initialData.delivery_days : [1, 2, 3, 4, 5],
+    } : {
+        name: "",
+        contact_email: "",
+        contact_phone: "",
+        lead_time_days: 2,
+        cut_off_time: "",
+        delivery_days: [1, 2, 3, 4, 5],
+    };
     const form = useForm<z.infer<typeof supplierSchema>>({
         resolver: zodResolver(supplierSchema),
-        defaultValues: initialData ? {
-            name: initialData.name,
-            contact_email: initialData.contact_email || "",
-            contact_phone: initialData.contact_phone || "",
-            lead_time_days: initialData.lead_time_days,
-            cut_off_time: initialData.cut_off_time || "",
-            delivery_days: initialData.delivery_days,
-        } : {
-            name: "",
-            lead_time_days: 2,
-            delivery_days: [1, 2, 3, 4, 5],
-        }
+        defaultValues,
     });
+
+    useEffect(() => {
+        form.reset(defaultValues);
+    }, [form, initialData]);
 
     const onSubmit = async (data: any) => {
         try {
-            const payload = { ...data, cut_off_time: data.cut_off_time || null };
+            const cutOff =
+                data.cut_off_time && data.cut_off_time.length === 5
+                    ? `${data.cut_off_time}:00`
+                    : data.cut_off_time || null;
+            const payload = { ...data, cut_off_time: cutOff };
             if (initialData) {
                 await suppliersService.update(initialData.id, payload);
                 toast({ title: "Proveedor actualizado" });
@@ -84,6 +97,30 @@ export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
                         </FormItem>
                     )}
                 />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <FormField
+                        control={form.control}
+                        name="contact_email"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Email (opcional)</FormLabel>
+                                <FormControl><Input type="email" placeholder="compras@proveedor.com" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="contact_phone"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Telefono (opcional)</FormLabel>
+                                <FormControl><Input type="tel" placeholder="+34 600 000 000" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
@@ -107,7 +144,9 @@ export function SupplierForm({ initialData, onSuccess }: SupplierFormProps) {
                                 <FormLabel className="flex items-center gap-2">
                                     <Clock className="w-4 h-4" /> Hora Límite
                                 </FormLabel>
-                                <FormControl><Input placeholder="11:00" {...field} /></FormControl>
+                                <FormControl>
+                                    <Input type="time" step="60" placeholder="11:00" {...field} />
+                                </FormControl>
                                 <FormDescription>HH:MM (24h)</FormDescription>
                                 <FormMessage />
                             </FormItem>
