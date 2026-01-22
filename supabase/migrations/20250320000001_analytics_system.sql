@@ -5,20 +5,42 @@
 -- Rename inventory_logs to stock_movements if exists
 DO $$ 
 BEGIN
-    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'inventory_logs') THEN
+    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'inventory_logs')
+       AND NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'stock_movements') THEN
         ALTER TABLE inventory_logs RENAME TO stock_movements;
     END IF;
 END $$;
 
 -- Ensure columns match what register_stock_movement Expects
-ALTER TABLE stock_movements 
-  RENAME COLUMN type TO movement_type;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'stock_movements' AND column_name = 'type'
+    ) THEN
+        ALTER TABLE stock_movements RENAME COLUMN type TO movement_type;
+    END IF;
+END $$;
 
-ALTER TABLE stock_movements 
-  RENAME COLUMN quantity_change TO quantity;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'stock_movements' AND column_name = 'quantity_change'
+    ) THEN
+        ALTER TABLE stock_movements RENAME COLUMN quantity_change TO quantity;
+    END IF;
+END $$;
 
-ALTER TABLE stock_movements 
-  RENAME COLUMN reason TO notes;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'stock_movements' AND column_name = 'reason'
+    ) THEN
+        ALTER TABLE stock_movements RENAME COLUMN reason TO notes;
+    END IF;
+END $$;
 
 ALTER TABLE stock_movements 
   ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id),
@@ -58,20 +80,20 @@ CREATE OR REPLACE VIEW v_food_cost_metrics AS
 SELECT 
     e.organization_id,
     e.name as event_name,
-    e.event_date,
-    SUM(er.planned_portions * r.cost_per_portion) as theoretical_cost,
+    e.date_start,
+    SUM(er.planned_portions * r.cost_per_serving) as theoretical_cost,
     (
-        SELECT SUM(poi.quantity * poi.unit_price)
+        SELECT SUM(poi.quantity_ordered * poi.unit_price)
         FROM purchase_orders po
         JOIN purchase_order_items poi ON po.id = poi.purchase_order_id
         WHERE po.organization_id = e.organization_id
-          AND po.created_at BETWEEN e.event_date - INTERVAL '7 days' AND e.event_date
+          AND po.created_at BETWEEN e.date_start - INTERVAL '7 days' AND e.date_start
     ) as actual_spent
 FROM events e
 JOIN event_recipes er ON e.id = er.event_id
 JOIN recipes r ON er.recipe_id = r.id
 WHERE e.status = 'CONFIRMED'
-GROUP BY e.organization_id, e.id, e.name, e.event_date;
+GROUP BY e.organization_id, e.id, e.name, e.date_start;
 
 -- Permissions for Views
 GRANT SELECT ON v_inventory_valuation TO authenticated;

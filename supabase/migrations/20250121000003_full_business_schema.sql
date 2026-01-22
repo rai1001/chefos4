@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- UNITS
-CREATE TABLE units (
+CREATE TABLE IF NOT EXISTS units (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name VARCHAR(50) NOT NULL,
@@ -10,10 +10,10 @@ CREATE TABLE units (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_units_org ON units(organization_id);
+-- CREATE INDEX IF NOT EXISTS idx_units_org ON units(organization_id);
 
 -- PRODUCT FAMILIES
-CREATE TABLE product_families (
+CREATE TABLE IF NOT EXISTS product_families (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL,
@@ -21,10 +21,10 @@ CREATE TABLE product_families (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_families_org ON product_families(organization_id);
+-- CREATE INDEX IF NOT EXISTS idx_families_org ON product_families(organization_id);
 
 -- SUPPLIERS
-CREATE TABLE suppliers (
+CREATE TABLE IF NOT EXISTS suppliers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
@@ -37,10 +37,10 @@ CREATE TABLE suppliers (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_suppliers_org ON suppliers(organization_id);
+-- CREATE INDEX IF NOT EXISTS idx_suppliers_org ON suppliers(organization_id);
 
 -- INGREDIENTS
-CREATE TABLE ingredients (
+CREATE TABLE IF NOT EXISTS ingredients (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
@@ -56,11 +56,11 @@ CREATE TABLE ingredients (
   deleted_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_ingredients_org ON ingredients(organization_id);
-CREATE INDEX idx_ingredients_family ON ingredients(family_id);
+-- CREATE INDEX IF NOT EXISTS idx_ingredients_org ON ingredients(organization_id);
+-- CREATE INDEX IF NOT EXISTS idx_ingredients_family ON ingredients(family_id);
 
 -- RECIPES
-CREATE TABLE recipes (
+CREATE TABLE IF NOT EXISTS recipes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
@@ -71,10 +71,10 @@ CREATE TABLE recipes (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_recipes_org ON recipes(organization_id);
+-- CREATE INDEX IF NOT EXISTS idx_recipes_org ON recipes(organization_id);
 
 -- RECIPE INGREDIENTS
-CREATE TABLE recipe_ingredients (
+CREATE TABLE IF NOT EXISTS recipe_ingredients (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
   ingredient_id UUID NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
@@ -83,10 +83,10 @@ CREATE TABLE recipe_ingredients (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_recipe_ing_recipe ON recipe_ingredients(recipe_id);
+-- CREATE INDEX IF NOT EXISTS idx_recipe_ing_recipe ON recipe_ingredients(recipe_id);
 
 -- EVENTS
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
@@ -97,10 +97,10 @@ CREATE TABLE events (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_events_org ON events(organization_id);
+-- CREATE INDEX IF NOT EXISTS idx_events_org ON events(organization_id);
 
 -- EVENT RECIPES
-CREATE TABLE event_recipes (
+CREATE TABLE IF NOT EXISTS event_recipes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   recipe_id UUID NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
@@ -109,7 +109,7 @@ CREATE TABLE event_recipes (
 );
 
 -- PURCHASE ORDERS
-CREATE TABLE purchase_orders (
+CREATE TABLE IF NOT EXISTS purchase_orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   supplier_id UUID NOT NULL REFERENCES suppliers(id),
@@ -121,7 +121,7 @@ CREATE TABLE purchase_orders (
 );
 
 -- PURCHASE ORDER ITEMS
-CREATE TABLE purchase_order_items (
+CREATE TABLE IF NOT EXISTS purchase_order_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
   ingredient_id UUID NOT NULL REFERENCES ingredients(id),
@@ -131,7 +131,7 @@ CREATE TABLE purchase_order_items (
 );
 
 -- INVENTORY LOGS
-CREATE TABLE inventory_logs (
+CREATE TABLE IF NOT EXISTS inventory_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   ingredient_id UUID NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
@@ -157,15 +157,7 @@ ALTER TABLE inventory_logs ENABLE ROW LEVEL SECURITY;
 -- Generic RLS Policy for organization-based isolation
 -- (Assumes auth.user_organization_ids() is already defined in migration 02)
 
-DO $$ 
-DECLARE 
-  t text;
-  tables text[] := ARRAY['units', 'product_families', 'suppliers', 'ingredients', 'recipes', 'events', 'purchase_orders', 'inventory_logs'];
-BEGIN
-  FOREACH t IN ARRAY tables LOOP
-    EXECUTE format('CREATE POLICY "Organization isolation for %I" ON %I FOR ALL USING (organization_id IN (SELECT public.user_organization_ids()))', t, t);
-  END LOOP;
-END $$;
+-- Legacy RLS block removed for local resets
 
 -- Fix for tables without organization_id (recipe_ingredients, purchase_order_items, event_recipes)
 -- These should inherit access from their parents
@@ -180,3 +172,6 @@ CREATE POLICY "PO based isolation for purchase_order_items" ON purchase_order_it
 DROP POLICY IF EXISTS "Organization isolation for event_recipes" ON event_recipes;
 CREATE POLICY "Event based isolation for event_recipes" ON event_recipes FOR ALL
   USING (event_id IN (SELECT id FROM events));
+
+
+

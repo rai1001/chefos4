@@ -26,11 +26,11 @@ WITH unit_ids AS (
     (SELECT id FROM units WHERE abbreviation = 'ud') AS ud_id
 )
 INSERT INTO uom_conversions (from_unit_id, to_unit_id, factor, ingredient_id) 
-SELECT kg_id, g_id, 1000, NULL FROM unit_ids
+SELECT kg_id, g_id, 1000, NULL::uuid FROM unit_ids
 UNION ALL
-SELECT l_id, ml_id, 1000, NULL FROM unit_ids
+SELECT l_id, ml_id, 1000, NULL::uuid FROM unit_ids
 UNION ALL
-SELECT m_id, cm_id, 100, NULL FROM unit_ids
+SELECT m_id, cm_id, 100, NULL::uuid FROM unit_ids
 UNION ALL
-SELECT dz_id, ud_id, 12, NULL FROM unit_ids
+SELECT dz_id, ud_id, 12, NULL::uuid FROM unit_ids
 ON CONFLICT DO NOTHING;
