@@ -1,0 +1,708 @@
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mG:/CS VISUAL/CHEFOS2/frontend[39m
+
+[90mstdout[2m | src/tests/NotificationBell.test.tsx[2m > [22m[2mNotificationBell Component[2m > [22m[2mrenders empty state when no notifications[22m[39m
+NotificationBell Rendering
+NotificationBell: { notificationsLength: [33m0[39m, unreadCount: [33m0[39m, organizationId: [32m'org123'[39m }
+
+stderr | src/tests/NotificationBell.test.tsx > NotificationBell Component > renders empty state when no notifications
+ÔÜá´©Å React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+ÔÜá´©Å React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[90mstdout[2m | src/tests/NotificationBell.test.tsx[2m > [22m[2mNotificationBell Component[2m > [22m[2mrenders notifications list when data exists[22m[39m
+NotificationBell Rendering
+NotificationBell: { notificationsLength: [33m0[39m, unreadCount: [33m0[39m, organizationId: [32m'org123'[39m }
+
+[90mstdout[2m | src/tests/NotificationBell.test.tsx[2m > [22m[2mNotificationBell Component[2m > [22m[2mrenders notifications list when data exists[22m[39m
+NotificationBell Rendering
+NotificationBell: { notificationsLength: [33m2[39m, unreadCount: [33m1[39m, organizationId: [32m'org123'[39m }
+
+ [33mÔØ»[39m src/tests/NotificationBell.test.tsx [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 346[2mms[22m[39m
+[31m   [33mÔØ»[31m src/tests/NotificationBell.test.tsx[2m > [22mNotificationBell Component[2m > [22mrenders empty state when no notifications[39m
+[31m     ÔåÆ Found multiple elements with the role "button"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33mclass[31m=[32m"lucide lucide-bell h-5 w-5"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"24"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"24"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M10.3 21a1.94 1.94 0 0 0 3.4 0"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"[31m
+[36m>[31m
+  [0mVer todo el historial[0m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div>[31m
+      [36m<div>[31m
+        [36m<button[31m
+          [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"lucide lucide-bell h-5 w-5"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mheight[31m=[32m"24"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mstroke-linecap[31m=[32m"round"[31m
+            [33mstroke-linejoin[31m=[32m"round"[31m
+            [33mstroke-width[31m=[32m"2"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mwidth[31m=[32m"24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+          [36m>[31m
+            [36m<path[31m
+              [33md[31m=[32m"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"[31m
+            [36m/>[31m
+            [36m<path[31m
+              [33md[31m=[32m"M10.3 21a1.94 1.94 0 0 0 3.4 0"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+        [36m</button>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mdata-testid[31m=[32m"dropdown-content"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center justify-between p-4 border-b"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"font-semibold text-lg"[31m
+          [36m>[31m
+            [0mNotificaciones[0m
+          [36m</h3>[31m
+        [36m</div>[31m
+        [36m<div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex flex-col items-center justify-center h-48 text-muted-foreground"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-inbox h-10 w-10 mb-2 opacity-20"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<polyline[31m
+                [33mpoints[31m=[32m"22 12 16 12 14 15 10 15 8 12 2 12"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<p>[31m
+              [0mNo tienes notificaciones[0m
+            [36m</p>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"p-2 border-t text-center"[31m
+        [36m>[31m
+          [36m<button[31m
+            [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"[31m
+          [36m>[31m
+            [0mVer todo el historial[0m
+          [36m</button>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[31m   [33mÔØ»[31m src/tests/NotificationBell.test.tsx[2m > [22mNotificationBell Component[2m > [22mrenders notifications list when data exists[39m
+[31m     ÔåÆ Found multiple elements with the role "button"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33mclass[31m=[32m"lucide lucide-bell h-5 w-5"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"24"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"24"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"[31m
+    [36m/>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M10.3 21a1.94 1.94 0 0 0 3.4 0"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+  [36m<div[31m
+    [33mclass[31m=[32m"absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] animate-in zoom-in"[31m
+    [33mdata-testid[31m=[32m"badge"[31m
+  [36m>[31m
+    [0m1[0m
+  [36m</div>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md px-3 text-xs h-8"[31m
+[36m>[31m
+  [36m<svg[31m
+    [33mclass[31m=[32m"lucide lucide-check mr-1 h-3 w-3"[31m
+    [33mfill[31m=[32m"none"[31m
+    [33mheight[31m=[32m"24"[31m
+    [33mstroke[31m=[32m"currentColor"[31m
+    [33mstroke-linecap[31m=[32m"round"[31m
+    [33mstroke-linejoin[31m=[32m"round"[31m
+    [33mstroke-width[31m=[32m"2"[31m
+    [33mviewBox[31m=[32m"0 0 24 24"[31m
+    [33mwidth[31m=[32m"24"[31m
+    [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+  [36m>[31m
+    [36m<path[31m
+      [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+    [36m/>[31m
+  [36m</svg>[31m
+  [0mMarcar todas como le├¡das[0m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"[31m
+[36m>[31m
+  [0mVer todo el historial[0m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div>[31m
+      [36m<div>[31m
+        [36m<button[31m
+          [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"lucide lucide-bell h-5 w-5"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mheight[31m=[32m"24"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mstroke-linecap[31m=[32m"round"[31m
+            [33mstroke-linejoin[31m=[32m"round"[31m
+            [33mstroke-width[31m=[32m"2"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mwidth[31m=[32m"24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+          [36m>[31m
+            [36m<path[31m
+              [33md[31m=[32m"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"[31m
+            [36m/>[31m
+            [36m<path[31m
+              [33md[31m=[32m"M10.3 21a1.94 1.94 0 0 0 3.4 0"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] animate-in zoom-in"[31m
+            [33mdata-testid[31m=[32m"badge"[31m
+          [36m>[31m
+            [0m1[0m
+          [36m</div>[31m
+        [36m</button>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mdata-testid[31m=[32m"dropdown-content"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center justify-between p-4 border-b"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"font-semibold text-lg"[31m
+          [36m>[31m
+            [0mNotificaciones[0m
+          [36m</h3>[31m
+          [36m<button[31m
+            [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md px-3 text-xs h-8"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-check mr-1 h-3 w-3"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [0mMarcar todas como le├¡das[0m
+          [36m</button>[31m
+        [36m</div>[31m
+        [36m<div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"divide-y"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"p-4 hover:bg-accent cursor-pointer transition-colors space-y-1 relative bg-primary/5"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full"[31m
+              [36m/>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex justify-between items-start gap-2"[31m
+              [36m>[31m
+                [36m<p[31m
+                  [33mclass[31m=[32m"font-bold text-sm leading-tight"[31m
+                [36m>[31m
+                  [0mNew Order[0m
+                [36m</p>[31m
+                [36m<span[31m
+                  [33mclass[31m=[32m"text-[10px] text-muted-foreground whitespace-nowrap"[31m
+                [36m>[31m
+                  [0m08:16[0m
+                [36m</span>[31m
+              [36m</div>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"text-sm text-muted-foreground line-clamp-2"[31m
+              [36m>[31m
+                [0mOrder #123 arrived[0m
+              [36m</p>[31m
+            [36m</div>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"p-4 hover:bg-accent cursor-pointer transition-colors space-y-1 relative"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex justify-between items-start gap-2"[31m
+              [36m>[31m
+                [36m<p[31m
+                  [33mclass[31m=[32m"font-bold text-sm leading-tight"[31m
+                [36m>[31m
+                  [0mStock Alert[0m
+                [36m</p>[31m
+                [36m<span[31m
+                  [33mclass[31m=[32m"text-[10px] text-muted-foreground whitespace-nowrap"[31m
+                [36m>[31m
+                  [0m08:16[0m
+                [36m</span>[31m
+              [36m</div>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"text-sm text-muted-foreground line-clamp-2"[31m
+              [36m>[31m
+                [0mTomato is low[0m
+              [36m</p>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"p-2 border-t text-center"[31m
+        [36m>[31m
+          [36m<button[31m
+            [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"[31m
+          [36m>[31m
+            [0mVer todo el historial[0m
+          [36m</button>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+    [36m</div>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/tests/NotificationBell.test.tsx > NotificationBell Component > renders empty state when no notifications
+TestingLibraryElementError: Found multiple elements with the role "button"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<button
+  class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"
+>
+  <svg
+    class="lucide lucide-bell h-5 w-5"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"
+    />
+    <path
+      d="M10.3 21a1.94 1.94 0 0 0 3.4 0"
+    />
+  </svg>
+</button>
+
+Ignored nodes: comments, script, style
+<button
+  class="inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"
+>
+  Ver todo el historial
+</button>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"
+        >
+          <svg
+            class="lucide lucide-bell h-5 w-5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"
+            />
+            <path
+              d="M10.3 21a1.94 1.94 0 0 0 3.4 0"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        data-testid="dropdown-content"
+      >
+        <div
+          class="flex items-center justify-between p-4 border-b"
+        >
+          <h3
+            class="font-semibold text-lg"
+          >
+            Notificaciones
+          </h3>
+        </div>
+        <div>
+          <div
+            class="flex flex-col items-center justify-center h-48 text-muted-foreground"
+          >
+            <svg
+              class="lucide lucide-inbox h-10 w-10 mb-2 opacity-20"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polyline
+                points="22 12 16 12 14 15 10 15 8 12 2 12"
+              />
+              <path
+                d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+              />
+            </svg>
+            <p>
+              No tienes notificaciones
+            </p>
+          </div>
+        </div>
+        <div
+          class="p-2 border-t text-center"
+        >
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"
+          >
+            Ver todo el historial
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ÔØ» Object.getElementError ../node_modules/@testing-library/dom/dist/config.js:37:19
+ ÔØ» getElementError ../node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ÔØ» getMultipleElementsFoundError ../node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ÔØ» ../node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ÔØ» ../node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ÔØ» src/tests/NotificationBell.test.tsx:84:35
+     82| 
+     83|         // Click bell to open
+     84|         const bellButton = screen.getByRole('button');
+       |                                   ^
+     85|         fireEvent.click(bellButton);
+     86| 
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/2]ÔÄ»
+
+ FAIL  src/tests/NotificationBell.test.tsx > NotificationBell Component > renders notifications list when data exists
+TestingLibraryElementError: Found multiple elements with the role "button"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<button
+  class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"
+>
+  <svg
+    class="lucide lucide-bell h-5 w-5"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"
+    />
+    <path
+      d="M10.3 21a1.94 1.94 0 0 0 3.4 0"
+    />
+  </svg>
+  <div
+    class="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] animate-in zoom-in"
+    data-testid="badge"
+  >
+    1
+  </div>
+</button>
+
+Ignored nodes: comments, script, style
+<button
+  class="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md px-3 text-xs h-8"
+>
+  <svg
+    class="lucide lucide-check mr-1 h-3 w-3"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M20 6 9 17l-5-5"
+    />
+  </svg>
+  Marcar todas como le├¡das
+</button>
+
+Ignored nodes: comments, script, style
+<button
+  class="inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"
+>
+  Ver todo el historial
+</button>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div>
+      <div>
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 relative"
+        >
+          <svg
+            class="lucide lucide-bell h-5 w-5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"
+            />
+            <path
+              d="M10.3 21a1.94 1.94 0 0 0 3.4 0"
+            />
+          </svg>
+          <div
+            class="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] animate-in zoom-in"
+            data-testid="badge"
+          >
+            1
+          </div>
+        </button>
+      </div>
+      <div
+        data-testid="dropdown-content"
+      >
+        <div
+          class="flex items-center justify-between p-4 border-b"
+        >
+          <h3
+            class="font-semibold text-lg"
+          >
+            Notificaciones
+          </h3>
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-md px-3 text-xs h-8"
+          >
+            <svg
+              class="lucide lucide-check mr-1 h-3 w-3"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+            Marcar todas como le├¡das
+          </button>
+        </div>
+        <div>
+          <div
+            class="divide-y"
+          >
+            <div
+              class="p-4 hover:bg-accent cursor-pointer transition-colors space-y-1 relative bg-primary/5"
+            >
+              <div
+                class="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full"
+              />
+              <div
+                class="flex justify-between items-start gap-2"
+              >
+                <p
+                  class="font-bold text-sm leading-tight"
+                >
+                  New Order
+                </p>
+                <span
+                  class="text-[10px] text-muted-foreground whitespace-nowrap"
+                >
+                  08:16
+                </span>
+              </div>
+              <p
+                class="text-sm text-muted-foreground line-clamp-2"
+              >
+                Order #123 arrived
+              </p>
+            </div>
+            <div
+              class="p-4 hover:bg-accent cursor-pointer transition-colors space-y-1 relative"
+            >
+              <div
+                class="flex justify-between items-start gap-2"
+              >
+                <p
+                  class="font-bold text-sm leading-tight"
+                >
+                  Stock Alert
+                </p>
+                <span
+                  class="text-[10px] text-muted-foreground whitespace-nowrap"
+                >
+                  08:16
+                </span>
+              </div>
+              <p
+                class="text-sm text-muted-foreground line-clamp-2"
+              >
+                Tomato is low
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="p-2 border-t text-center"
+        >
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full text-xs"
+          >
+            Ver todo el historial
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ÔØ» Object.getElementError ../node_modules/@testing-library/dom/dist/config.js:37:19
+ ÔØ» getElementError ../node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ÔØ» getMultipleElementsFoundError ../node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ÔØ» ../node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ÔØ» ../node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ÔØ» src/tests/NotificationBell.test.tsx:109:35
+    107|         expect(badge).toHaveTextContent('1');
+    108| 
+    109|         const bellButton = screen.getByRole('button');
+       |                                   ^
+    110|         fireEvent.click(bellButton);
+    111| 
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/2]ÔÄ»
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 08:16:28
+[2m   Duration [22m 3.99s[2m (transform 138ms, setup 188ms, collect 404ms, tests 346ms, environment 1.45s, prepare 181ms)[22m
+

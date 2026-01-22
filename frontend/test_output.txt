@@ -1,0 +1,24 @@
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mG:/CS VISUAL/CHEFOS2/frontend[39m
+
+ [33mÔØ»[39m src/App.test.tsx [2m ([22m[2m0 test[22m[2m)[22m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Suites 1 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/App.test.tsx [ src/App.test.tsx ]
+Error: Failed to resolve import "react-hot-toast" from "src/App.tsx". Does the file exist?
+ ÔØ» TransformPluginContext._formatError ../../../CS%20VISUAL/CHEFOS2/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41
+ ÔØ» TransformPluginContext.error ../../../CS%20VISUAL/CHEFOS2/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16
+ ÔØ» normalizeUrl ../../../CS%20VISUAL/CHEFOS2/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23
+ ÔØ» async file:/G:/CS%20VISUAL/CHEFOS2/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+ ÔØ» TransformPluginContext.transform ../../../CS%20VISUAL/CHEFOS2/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7
+ ÔØ» PluginContainer.transform ../../../CS%20VISUAL/CHEFOS2/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18
+ ÔØ» loadAndTransform ../../../CS%20VISUAL/CHEFOS2/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/1]ÔÄ»
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m   Start at [22m 08:03:53
+[2m   Duration [22m 2.91s[2m (transform 64ms, setup 228ms, collect 0ms, tests 0ms, environment 1.28s, prepare 202ms)[22m
+
