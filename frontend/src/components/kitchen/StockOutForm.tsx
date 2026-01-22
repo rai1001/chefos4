@@ -90,7 +90,10 @@ export function StockOutForm({ onSuccess }: { onSuccess?: () => void }) {
                                     step="0.01"
                                     className="h-12 text-lg"
                                     {...field}
-                                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                                    onChange={(e) => {
+                                        const value = e.target.value
+                                        field.onChange(value === "" ? 0 : Number(value))
+                                    }}
                                 />
                             </FormControl>
                             <FormMessage />

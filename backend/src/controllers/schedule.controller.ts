@@ -1,11 +1,13 @@
 import { Response } from 'express';
 import { AuthRequest } from '@/middleware/auth.middleware';
 import { ScheduleService } from '@/services/schedule.service';
+import { ScheduleRulesValidator } from '@/services/schedule-rules.validator';
 import { AppError } from '@/utils/errors';
 import { logger } from '@/utils/logger';
 
 export class ScheduleController {
     private scheduleService = new ScheduleService();
+    private rulesValidator = new ScheduleRulesValidator();
 
     async createMonth(req: AuthRequest, res: Response): Promise<void> {
         try {
@@ -52,6 +54,16 @@ export class ScheduleController {
     async publishMonth(req: AuthRequest, res: Response): Promise<void> {
         try {
             const { id } = req.params;
+            const validation = await this.rulesValidator.validateMonth({
+                monthId: id,
+                organizationIds: req.user!.organizationIds,
+            });
+
+            if (validation.errors.length > 0) {
+                res.status(400).json({ error: 'Validation failed', details: validation });
+                return;
+            }
+
             const data = await this.scheduleService.publishMonth({
                 id,
                 organizationIds: req.user!.organizationIds,
@@ -65,6 +77,24 @@ export class ScheduleController {
             }
             logger.error(error, 'Error publishing schedule month');
             res.status(500).json({ error: 'Failed to publish schedule month' });
+        }
+    }
+
+    async validateMonth(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const validation = await this.rulesValidator.validateMonth({
+                monthId: id,
+                organizationIds: req.user!.organizationIds,
+            });
+            res.json({ data: validation });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.statusCode).json({ error: error.message });
+                return;
+            }
+            logger.error(error, 'Error validating schedule month');
+            res.status(500).json({ error: 'Failed to validate schedule month' });
         }
     }
 

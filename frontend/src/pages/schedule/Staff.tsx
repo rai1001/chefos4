@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { staffService } from '@/services/staff.service';
+import { scheduleRulesService } from '@/services/schedule-rules.service';
 import { api } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -143,111 +144,232 @@ export default function StaffPage() {
 
             <div className="space-y-4">
                 {staff.map((item) => (
-                    <Card key={item.id}>
-                        <CardHeader>
-                            <CardTitle>
-                                {item.member?.user?.name || item.member?.user?.email || 'Staff'}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <Input
-                                defaultValue={item.role_in_kitchen || ''}
-                                placeholder="Rol en cocina"
-                                onBlur={(e) =>
-                                    updateMutation.mutate({
-                                        id: item.id,
-                                        payload: { role_in_kitchen: e.target.value || null },
-                                    })
-                                }
-                            />
-                            <Input
-                                defaultValue={(item.skills || []).join(', ')}
-                                placeholder="Skills"
-                                onBlur={(e) =>
-                                    updateMutation.mutate({
-                                        id: item.id,
-                                        payload: {
-                                            skills: e.target.value
-                                                .split(',')
-                                                .map((value) => value.trim())
-                                                .filter(Boolean),
-                                        },
-                                    })
-                                }
-                            />
-                            <Select
-                                value={item.active ? 'active' : 'inactive'}
-                                onValueChange={(value) =>
-                                    updateMutation.mutate({
-                                        id: item.id,
-                                        payload: { active: value === 'active' },
-                                    })
-                                }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">Activo</SelectItem>
-                                    <SelectItem value="inactive">Inactivo</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Input
-                                defaultValue={item.contract?.weekly_hours_target ?? ''}
-                                placeholder="Horas/semana"
-                                type="number"
-                                onBlur={(e) =>
-                                    updateMutation.mutate({
-                                        id: item.id,
-                                        payload: {
-                                            contract: {
-                                                weekly_hours_target: e.target.value ? Number(e.target.value) : null,
-                                            },
-                                        },
-                                    })
-                                }
-                            />
-                            <Input
-                                defaultValue={item.contract?.max_weekly_hours ?? ''}
-                                placeholder="Max horas/semana"
-                                type="number"
-                                onBlur={(e) =>
-                                    updateMutation.mutate({
-                                        id: item.id,
-                                        payload: {
-                                            contract: {
-                                                max_weekly_hours: e.target.value ? Number(e.target.value) : null,
-                                            },
-                                        },
-                                    })
-                                }
-                            />
-                            <Input
-                                defaultValue={item.contract?.vacation_days_per_year ?? ''}
-                                placeholder="Vacaciones/año"
-                                type="number"
-                                onBlur={(e) =>
-                                    updateMutation.mutate({
-                                        id: item.id,
-                                        payload: {
-                                            contract: {
-                                                vacation_days_per_year: e.target.value ? Number(e.target.value) : null,
-                                            },
-                                        },
-                                    })
-                                }
-                            />
-                            <div className="md:col-span-3 text-xs text-muted-foreground">
-                                Saldo {new Date().getFullYear()}:&nbsp;
-                                {item.vacation_balance?.[0]?.days_remaining ?? 0} días disponibles
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <StaffCard
+                        key={item.id}
+                        staff={item}
+                        onUpdate={updateMutation}
+                    />
                 ))}
                 {staff.length === 0 && (
                     <div className="text-sm text-muted-foreground">No hay perfiles creados.</div>
                 )}
             </div>
         </div>
+    );
+}
+
+function StaffCard({
+    staff,
+    onUpdate,
+}: {
+    staff: any;
+    onUpdate: ReturnType<typeof useMutation>;
+}) {
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const [allowedShiftCodes, setAllowedShiftCodes] = useState<string[]>([]);
+    const [rotationMode, setRotationMode] = useState('NONE');
+    const [requiresWeekendOff, setRequiresWeekendOff] = useState(true);
+    const [maxConsecutiveDays, setMaxConsecutiveDays] = useState('');
+
+    const { data: rules } = useQuery({
+        queryKey: ['staff-rules', staff.id],
+        queryFn: () => scheduleRulesService.getStaffRules(staff.id),
+    });
+
+    useEffect(() => {
+        if (rules) {
+            setAllowedShiftCodes(rules.allowed_shift_codes || []);
+            setRotationMode(rules.rotation_mode || 'NONE');
+            setRequiresWeekendOff(rules.requires_weekend_off_per_month ?? true);
+            setMaxConsecutiveDays(
+                rules.max_consecutive_days !== null && rules.max_consecutive_days !== undefined
+                    ? String(rules.max_consecutive_days)
+                    : ''
+            );
+        }
+    }, [rules]);
+
+    const rulesMutation = useMutation({
+        mutationFn: () =>
+            scheduleRulesService.updateStaffRules(staff.id, {
+                allowed_shift_codes: allowedShiftCodes,
+                rotation_mode: rotationMode,
+                requires_weekend_off_per_month: requiresWeekendOff,
+                max_consecutive_days: maxConsecutiveDays ? Number(maxConsecutiveDays) : null,
+            } as any),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['staff-rules', staff.id] });
+            toast({ title: 'Reglas actualizadas' });
+        },
+        onError: () => {
+            toast({ title: 'Error', description: 'No se pudieron guardar reglas', variant: 'destructive' });
+        },
+    });
+
+    const toggleShift = (code: string) => {
+        setAllowedShiftCodes((prev) =>
+            prev.includes(code) ? prev.filter((item) => item !== code) : [...prev, code]
+        );
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>
+                    {staff.member?.user?.name || staff.member?.user?.email || 'Staff'}
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <Input
+                    defaultValue={staff.role_in_kitchen || ''}
+                    placeholder="Rol en cocina"
+                    onBlur={(e) =>
+                        onUpdate.mutate({
+                            id: staff.id,
+                            payload: { role_in_kitchen: e.target.value || null },
+                        })
+                    }
+                />
+                <Input
+                    defaultValue={(staff.skills || []).join(', ')}
+                    placeholder="Skills"
+                    onBlur={(e) =>
+                        onUpdate.mutate({
+                            id: staff.id,
+                            payload: {
+                                skills: e.target.value
+                                    .split(',')
+                                    .map((value) => value.trim())
+                                    .filter(Boolean),
+                            },
+                        })
+                    }
+                />
+                <Select
+                    value={staff.active ? 'active' : 'inactive'}
+                    onValueChange={(value) =>
+                        onUpdate.mutate({
+                            id: staff.id,
+                            payload: { active: value === 'active' },
+                        })
+                    }
+                >
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="active">Activo</SelectItem>
+                        <SelectItem value="inactive">Inactivo</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Input
+                    defaultValue={staff.contract?.weekly_hours_target ?? ''}
+                    placeholder="Horas/semana"
+                    type="number"
+                    onBlur={(e) =>
+                        onUpdate.mutate({
+                            id: staff.id,
+                            payload: {
+                                contract: {
+                                    weekly_hours_target: e.target.value ? Number(e.target.value) : null,
+                                },
+                            },
+                        })
+                    }
+                />
+                <Input
+                    defaultValue={staff.contract?.max_weekly_hours ?? ''}
+                    placeholder="Max horas/semana"
+                    type="number"
+                    onBlur={(e) =>
+                        onUpdate.mutate({
+                            id: staff.id,
+                            payload: {
+                                contract: {
+                                    max_weekly_hours: e.target.value ? Number(e.target.value) : null,
+                                },
+                            },
+                        })
+                    }
+                />
+                <Input
+                    defaultValue={staff.contract?.vacation_days_per_year ?? ''}
+                    placeholder="Vacaciones/año"
+                    type="number"
+                    onBlur={(e) =>
+                        onUpdate.mutate({
+                            id: staff.id,
+                            payload: {
+                                contract: {
+                                    vacation_days_per_year: e.target.value ? Number(e.target.value) : null,
+                                },
+                            },
+                        })
+                    }
+                />
+                <div className="md:col-span-3 text-xs text-muted-foreground">
+                    Saldo {new Date().getFullYear()}:&nbsp;
+                    {staff.vacation_balance?.[0]?.days_remaining ?? 0} días disponibles
+                </div>
+
+                <div className="md:col-span-3 rounded-md border p-4 space-y-3">
+                    <div className="text-sm font-semibold">Reglas de horario</div>
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-3 text-sm">
+                        {['MORNING', 'AFTERNOON', 'NIGHT'].map((code) => (
+                            <label key={code} className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4"
+                                    checked={allowedShiftCodes.includes(code)}
+                                    onChange={() => toggleShift(code)}
+                                />
+                                <span>{code}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                        <Select value={rotationMode} onValueChange={setRotationMode}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Rotacion" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="NONE">Sin rotacion</SelectItem>
+                                <SelectItem value="WEEKLY">Semanal</SelectItem>
+                                <SelectItem value="BIWEEKLY">Quincenal</SelectItem>
+                                <SelectItem value="MONTHLY">Mensual</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            placeholder="Max dias consecutivos"
+                            type="number"
+                            value={maxConsecutiveDays}
+                            onChange={(e) => setMaxConsecutiveDays(e.target.value)}
+                        />
+                        <Select
+                            value={requiresWeekendOff ? 'yes' : 'no'}
+                            onValueChange={(value) => setRequiresWeekendOff(value === 'yes')}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Finde libre" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="yes">Finde libre requerido</SelectItem>
+                                <SelectItem value="no">No requerido</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={() => rulesMutation.mutate()}
+                            disabled={rulesMutation.isPending}
+                        >
+                            Guardar reglas
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
     );
 }

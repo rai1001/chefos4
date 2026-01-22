@@ -45,6 +45,11 @@ export const scheduleService = {
         return response.data.data as ScheduleMonth;
     },
 
+    async validateMonth(id: string) {
+        const response = await api.post(`/schedules/months/${id}/validate`);
+        return response.data.data as { errors: any[]; warnings: any[] };
+    },
+
     async createShift(payload: {
         schedule_month_id: string;
         date: string;

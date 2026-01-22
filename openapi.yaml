@@ -41,6 +41,8 @@ tags:
     description: Monthly schedules and shifts
   - name: Preparations
     description: Preparations catalog and batches
+  - name: Schedule Rules
+    description: Staff and organization schedule rules
 
 paths:
   /health:
@@ -640,6 +642,23 @@ paths:
         '200':
           description: Schedule month detail
 
+  /schedules/months/{id}/validate:
+    post:
+      summary: Validate schedule month rules
+      tags:
+        - Schedules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Validation result
+
   /schedules/months/{id}/publish:
     post:
       summary: Publish schedule month
@@ -990,6 +1009,92 @@ paths:
       responses:
         '200':
           description: Expiry candidates
+
+  /schedule-rules/staff/{staffId}:
+    get:
+      summary: Get staff schedule rules
+      tags:
+        - Schedule Rules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Staff rules
+    patch:
+      summary: Update staff schedule rules
+      tags:
+        - Schedule Rules
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: staffId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                allowed_shift_codes:
+                  type: array
+                  items:
+                    type: string
+                rotation_mode:
+                  type: string
+                preferred_days_off:
+                  type: array
+                  items:
+                    type: string
+                max_consecutive_days:
+                  type: integer
+                requires_weekend_off_per_month:
+                  type: boolean
+      responses:
+        '200':
+          description: Staff rules updated
+
+  /schedule-rules/org:
+    get:
+      summary: Get organization schedule rules
+      tags:
+        - Schedule Rules
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Organization rules
+    patch:
+      summary: Update organization schedule rules
+      tags:
+        - Schedule Rules
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                weekend_definition:
+                  type: string
+                enforce_weekend_off_hard:
+                  type: boolean
+                rotation_enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Organization rules updated
 
 components:
   schemas:

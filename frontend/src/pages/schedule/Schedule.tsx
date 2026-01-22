@@ -19,6 +19,7 @@ export default function SchedulePage() {
     const [editorOpen, setEditorOpen] = useState(false);
     const [editorDate, setEditorDate] = useState<string>('');
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
+    const [validation, setValidation] = useState<{ errors: any[]; warnings: any[] } | null>(null);
 
     const { data: staff = [] } = useQuery({
         queryKey: ['staff'],
@@ -53,10 +54,32 @@ export default function SchedulePage() {
     }, [month]);
 
     const publishMutation = useMutation({
-        mutationFn: () => scheduleService.publishMonth(scheduleMonthId || ''),
+        mutationFn: async () => {
+            if (!scheduleMonthId) {
+                return null;
+            }
+            const result = await scheduleService.validateMonth(scheduleMonthId);
+            setValidation(result);
+            if (result.errors.length > 0) {
+                throw new Error('validation_failed');
+            }
+            return scheduleService.publishMonth(scheduleMonthId);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['schedule-month', scheduleMonthId] });
             toast({ title: 'Mes publicado' });
+        },
+        onError: (error: any) => {
+            if (error?.message === 'validation_failed') {
+                toast({ title: 'No se puede publicar', description: 'Hay errores de reglas', variant: 'destructive' });
+            }
+        },
+    });
+
+    const validateMutation = useMutation({
+        mutationFn: () => scheduleService.validateMonth(scheduleMonthId || ''),
+        onSuccess: (result) => {
+            setValidation(result);
         },
     });
 
@@ -133,6 +156,13 @@ export default function SchedulePage() {
                     />
                     <Button
                         variant="outline"
+                        onClick={() => validateMutation.mutate()}
+                        disabled={!scheduleMonthId || validateMutation.isPending}
+                    >
+                        Validar reglas
+                    </Button>
+                    <Button
+                        variant="outline"
                         onClick={() => publishMutation.mutate()}
                         disabled={!scheduleMonthId || publishMutation.isPending}
                     >
@@ -140,6 +170,38 @@ export default function SchedulePage() {
                     </Button>
                 </div>
             </div>
+
+            {validation && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Conflictos y avisos</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                        <div>
+                            <div className="font-semibold">Errores</div>
+                            {validation.errors.length === 0 && (
+                                <div className="text-muted-foreground">Sin errores.</div>
+                            )}
+                            {validation.errors.map((item, index) => (
+                                <div key={`error-${index}`} className="text-destructive">
+                                    {item.message}
+                                </div>
+                            ))}
+                        </div>
+                        <div>
+                            <div className="font-semibold">Avisos</div>
+                            {validation.warnings.length === 0 && (
+                                <div className="text-muted-foreground">Sin avisos.</div>
+                            )}
+                            {validation.warnings.map((item, index) => (
+                                <div key={`warning-${index}`} className="text-muted-foreground">
+                                    {item.message}
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             <Card>
                 <CardHeader>

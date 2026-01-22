@@ -99,7 +99,7 @@ export default function WastePage() {
                             </TableRow>
                         ) : (
                             sortedLogs.map((log: any) => (
-                                <TableRow key={log.created_at + log.ingredient_id}> {/* logs might not have id if backend only selects fields, so using composite key */}
+                                <TableRow key={log.created_at + log.ingredient_id}>
                                     <TableCell>{formatDateTime(log.created_at)}</TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">
