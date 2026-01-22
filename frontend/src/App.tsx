@@ -20,11 +20,13 @@ import Waste from './pages/Waste';
 import HR from './pages/HR';
 import Organizations from './pages/Organizations';
 import Settings from './pages/Settings';
+import InventoryReception from './pages/inventory/Reception';
+import InventoryExpiry from './pages/inventory/Expiry';
+import InventoryStockOut from './pages/inventory/StockOut';
+import InventoryLocations from './pages/inventory/Locations';
 
 function App() {
-    const { user, isAuthenticated } = useAuthStore();
-
-    console.log('App Rendering - Testing Auth & Routing', { isAuthenticated, user });
+    const { isAuthenticated } = useAuthStore();
 
     return (
         <>
@@ -48,6 +50,10 @@ function App() {
                     <Route path="/production" element={<Production />} />
                     <Route path="/kitchen" element={<Kitchen />} />
                     <Route path="/waste" element={<Waste />} />
+                    <Route path="/inventory/reception" element={<InventoryReception />} />
+                    <Route path="/inventory/expiry" element={<InventoryExpiry />} />
+                    <Route path="/inventory/stock-out" element={<InventoryStockOut />} />
+                    <Route path="/inventory/locations" element={<InventoryLocations />} />
                     <Route path="/hr" element={<HR />} />
                     <Route path="/organizations" element={<Organizations />} />
                     <Route path="/settings" element={<Settings />} />

@@ -1,0 +1,484 @@
+openapi: '3.0.3'
+info:
+  title: CHEFOS2 API
+  description: API documentation for CHEFOS2 - Restaurant Management System
+  version: '1.0.0'
+  contact:
+    name: CHEFOS2 Team
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.server.test/v1
+    description: Development Server
+  - url: https://api.production.test/v1
+    description: Production Server
+
+tags:
+  - name: Authentication
+    description: Authentication endpoints
+  - name: Ingredients
+    description: Ingredient management
+  - name: Suppliers
+    description: Supplier management
+  - name: Purchase Orders
+    description: Purchase order management
+  - name: Events
+    description: Event management
+  - name: Recipes
+    description: Recipe management
+  - name: Kitchen
+    description: Kitchen operations
+  - name: Delivery Notes
+    description: OCR delivery notes and imports
+  - name: Inventory
+    description: Batches, expiries, stock-out, locations
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      tags:
+        - System
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /auth/login:
+    post:
+      summary: User login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      summary: User logout
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          description: Unauthorized
+
+  /delivery-notes:
+    get:
+      summary: List delivery notes with items
+      tags:
+        - Delivery Notes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Delivery notes list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeliveryNote'
+
+  /delivery-notes/{id}:
+    get:
+      summary: Get delivery note by id
+      tags:
+        - Delivery Notes
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Delivery note detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DeliveryNote'
+
+  /delivery-notes/items/{id}:
+    patch:
+      summary: Update delivery note item
+      tags:
+        - Delivery Notes
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryNoteItemUpdate'
+      responses:
+        '200':
+          description: Updated item
+
+  /delivery-notes/{id}/import-to-inventory:
+    post:
+      summary: Import delivery note items to inventory batches
+      tags:
+        - Delivery Notes
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item_updates:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DeliveryNoteItemUpdate'
+      responses:
+        '200':
+          description: Import result
+
+  /inventory/batches:
+    get:
+      summary: List inventory batches
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: ingredient_id
+          schema:
+            type: string
+        - in: query
+          name: expiring_in_days
+          schema:
+            type: integer
+        - in: query
+          name: location_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Batches list
+
+  /inventory/batches/{id}:
+    patch:
+      summary: Update batch expiry/location/lot
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expiry_date:
+                  type: string
+                  format: date
+                storage_location_id:
+                  type: string
+                lot_code:
+                  type: string
+      responses:
+        '200':
+          description: Batch updated
+
+  /inventory/batches/{id}/expiry/scan:
+    post:
+      summary: Scan expiry date from image
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Expiry candidates
+
+  /inventory/stock-out:
+    post:
+      summary: Stock out with FEFO by barcode or ingredient
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                barcode:
+                  type: string
+                ingredient_id:
+                  type: string
+                quantity:
+                  type: number
+                movement_type:
+                  type: string
+                  enum: [OUT, WASTE, ADJUSTMENT]
+                production_order_id:
+                  type: string
+                notes:
+                  type: string
+                save_barcode:
+                  type: boolean
+      responses:
+        '200':
+          description: Stock out result
+
+  /inventory/locations:
+    get:
+      summary: List storage locations
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Locations list
+    post:
+      summary: Create storage location
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+      responses:
+        '201':
+          description: Location created
+
+  /inventory/locations/{id}:
+    patch:
+      summary: Update storage location
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+      responses:
+        '200':
+          description: Location updated
+    delete:
+      summary: Delete storage location
+      tags:
+        - Inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Location deleted
+
+components:
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT authentication token
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+
+    DeliveryNoteItem:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: number
+        unit_price:
+          type: number
+        ingredient_id:
+          type: string
+          nullable: true
+        unit_id:
+          type: string
+          nullable: true
+        status:
+          type: string
+        lot_code:
+          type: string
+          nullable: true
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        storage_location_id:
+          type: string
+          nullable: true
+
+    DeliveryNote:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        total_amount:
+          type: number
+        image_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryNoteItem'
+
+    DeliveryNoteItemUpdate:
+      type: object
+      properties:
+        ingredient_id:
+          type: string
+          nullable: true
+        unit_id:
+          type: string
+          nullable: true
+        status:
+          type: string
+        quantity:
+          type: number
+        unit_price:
+          type: number
+        lot_code:
+          type: string
+          nullable: true
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+        storage_location_id:
+          type: string
+          nullable: true
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

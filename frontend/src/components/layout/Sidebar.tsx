@@ -13,6 +13,10 @@ import {
     Trash2,
     Users,
     Hotel,
+    ClipboardList,
+    CalendarClock,
+    ScanBarcode,
+    MapPin,
 } from 'lucide-react';
 
 const navigation = [
@@ -22,6 +26,10 @@ const navigation = [
     { name: 'Eventos', href: '/events', icon: Calendar },
     { name: 'Órdenes de Compra', href: '/purchase-orders', icon: ShoppingCart },
     { name: 'Albaranes (OCR)', href: '/albaranes', icon: FileText },
+    { name: 'Inventario - Recepción', href: '/inventory/reception', icon: ClipboardList },
+    { name: 'Inventario - Caducidades', href: '/inventory/expiry', icon: CalendarClock },
+    { name: 'Inventario - Salidas', href: '/inventory/stock-out', icon: ScanBarcode },
+    { name: 'Inventario - Ubicaciones', href: '/inventory/locations', icon: MapPin },
     { name: 'Producción', href: '/production', icon: Layers },
     { name: 'Cocina', href: '/kitchen', icon: ChefHat },
     { name: 'Mermas', href: '/waste', icon: Trash2 },

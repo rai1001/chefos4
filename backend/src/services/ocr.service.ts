@@ -68,6 +68,25 @@ export class OCRService {
             .single();
 
         if (error) throw error;
+
+        const items = data.extracted_data.items || [];
+        if (items.length > 0) {
+            const rows = items.map((item) => ({
+                organization_id: data.organization_id,
+                delivery_note_id: note.id,
+                description: item.description,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                status: 'PENDING',
+            }));
+
+            const { error: itemsError } = await supabase
+                .from('delivery_note_items')
+                .insert(rows);
+
+            if (itemsError) throw itemsError;
+        }
+
         return note;
     }
 

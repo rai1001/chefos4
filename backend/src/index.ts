@@ -24,6 +24,8 @@ import wasteRoutes from './routes/waste.routes';
 import webhookRoutes from './routes/webhook.routes';
 import hrRoutes from './routes/hr.routes';
 import organizationsRoutes from './routes/organizations.routes';
+import inventoryRoutes from './routes/inventory.routes';
+import deliveryNotesRoutes from './routes/delivery-notes.routes';
 
 
 dotenv.config();
@@ -77,6 +79,8 @@ app.use(`${apiPrefix}/waste`, wasteRoutes);
 app.use(`${apiPrefix}/webhooks`, webhookRoutes);
 app.use(`${apiPrefix}/hr`, hrRoutes);
 app.use(`${apiPrefix}/organizations`, organizationsRoutes);
+app.use(`${apiPrefix}/inventory`, inventoryRoutes);
+app.use(`${apiPrefix}/delivery-notes`, deliveryNotesRoutes);
 
 
 // =====================================================
