@@ -50,6 +50,11 @@ export const scheduleService = {
         return response.data.data as { errors: any[]; warnings: any[] };
     },
 
+    async generateMonth(id: string, payload?: { from?: string; to?: string }) {
+        const response = await api.post(`/schedules/months/${id}/generate`, payload || {});
+        return response.data.data as { created_shifts: number; created_assignments: number; warnings: string[] };
+    },
+
     async createShift(payload: {
         schedule_month_id: string;
         date: string;

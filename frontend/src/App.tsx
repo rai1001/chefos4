@@ -32,7 +32,6 @@ import Alerts from './pages/Alerts';
 import StaffPage from './pages/schedule/Staff';
 import TimeOffPage from './pages/schedule/TimeOff';
 import SchedulePage from './pages/schedule/Schedule';
-import PreparationsCatalogPage from './pages/preparations/Catalog';
 import PreparationBatchesPage from './pages/preparations/Batches';
 
 function App() {
@@ -72,7 +71,7 @@ function App() {
                     <Route path="/staff" element={<StaffPage />} />
                     <Route path="/time-off" element={<TimeOffPage />} />
                     <Route path="/schedule" element={<SchedulePage />} />
-                    <Route path="/preparations" element={<PreparationsCatalogPage />} />
+                    <Route path="/preparations" element={<PreparationBatchesPage />} />
                     <Route path="/preparations/batches" element={<PreparationBatchesPage />} />
                     <Route path="/hr" element={<HR />} />
                     <Route path="/organizations" element={<Organizations />} />

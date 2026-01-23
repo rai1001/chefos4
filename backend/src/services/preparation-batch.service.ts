@@ -90,6 +90,47 @@ export class PreparationBatchService {
             }
         }
 
+        const inventoryIngredientId = await this.ensurePreparationIngredient({
+            organizationId: params.organizationId,
+            preparationId: params.preparationId,
+            preparationName: preparation.name,
+            unitId: preparation.unit_id,
+        });
+
+        const { data: inventoryBatchId, error: inventoryError } = await supabase.rpc(
+            'create_inventory_batch',
+            {
+                p_organization_id: params.organizationId,
+                p_ingredient_id: inventoryIngredientId,
+                p_unit_id: preparation.unit_id,
+                p_quantity: params.quantityProduced,
+                p_received_at: params.producedAt,
+                p_expiry_date: expiryDate || null,
+                p_lot_code: params.lotCode || batch.lot_code,
+                p_delivery_note_item_id: null,
+                p_storage_location_id: params.storageLocationId || null,
+                p_user_id: params.createdBy || null,
+                p_purchase_order_id: null,
+                p_notes: `Preparation batch ${batch.id}`,
+            }
+        );
+
+        if (inventoryError) {
+            logger.error(inventoryError, 'Error creating inventory batch for preparation');
+            throw new AppError(500, 'Failed to create inventory batch for preparation');
+        }
+
+        if (inventoryBatchId) {
+            const { error: linkError } = await supabase
+                .from('preparation_batches')
+                .update({ inventory_batch_id: inventoryBatchId })
+                .eq('id', batch.id);
+
+            if (linkError) {
+                logger.error(linkError, 'Error linking inventory batch to preparation batch');
+            }
+        }
+
         return batch;
     }
 
@@ -173,5 +214,50 @@ export class PreparationBatchService {
         const produced = new Date(`${producedAt}T00:00:00Z`);
         produced.setUTCDate(produced.getUTCDate() + shelfLifeDays);
         return produced.toISOString().slice(0, 10);
+    }
+
+    private async ensurePreparationIngredient(params: {
+        organizationId: string;
+        preparationId: string;
+        preparationName: string;
+        unitId: string;
+    }) {
+        const { data: existing, error } = await supabase
+            .from('ingredients')
+            .select('id')
+            .eq('organization_id', params.organizationId)
+            .eq('preparation_id', params.preparationId)
+            .maybeSingle();
+
+        if (existing?.id) {
+            return existing.id;
+        }
+
+        if (error) {
+            logger.error(error, 'Error checking preparation ingredient');
+            throw new AppError(500, 'Failed to check preparation ingredient');
+        }
+
+        const { data: created, error: createError } = await supabase
+            .from('ingredients')
+            .insert({
+                organization_id: params.organizationId,
+                name: params.preparationName,
+                unit_id: params.unitId,
+                cost_price: 0,
+                stock_min: 0,
+                stock_current: 0,
+                is_preparation: true,
+                preparation_id: params.preparationId,
+            })
+            .select('id')
+            .single();
+
+        if (createError || !created) {
+            logger.error(createError, 'Error creating preparation ingredient');
+            throw new AppError(500, 'Failed to create preparation ingredient');
+        }
+
+        return created.id;
     }
 }

@@ -91,4 +91,34 @@ export class PreparationService {
 
         return data;
     }
+
+    async findOrCreate(params: {
+        organizationId: string;
+        name: string;
+        unitId: string;
+        defaultShelfLifeDays?: number | null;
+    }) {
+        const { data: existing, error: existingError } = await supabase
+            .from('preparations')
+            .select('*')
+            .eq('organization_id', params.organizationId)
+            .eq('name', params.name)
+            .single();
+
+        if (existing && !existingError) {
+            return existing;
+        }
+
+        if (existingError && existingError.code !== 'PGRST116') {
+            logger.error(existingError, 'Error finding preparation');
+            throw new AppError(500, 'Failed to fetch preparation');
+        }
+
+        return this.create({
+            organizationId: params.organizationId,
+            name: params.name,
+            unitId: params.unitId,
+            defaultShelfLifeDays: params.defaultShelfLifeDays ?? 0,
+        });
+    }
 }

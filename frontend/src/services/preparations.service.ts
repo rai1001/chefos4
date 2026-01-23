@@ -59,6 +59,19 @@ export const preparationsService = {
         return response.data.data as PreparationBatch;
     },
 
+    async createSimpleBatch(payload: {
+        name: string;
+        unit_id: string;
+        produced_at: string;
+        quantity_produced: number;
+        expiry_date?: string | null;
+        lot_code?: string | null;
+        storage_location_id?: string | null;
+    }) {
+        const response = await api.post('/preparations/batches/simple', payload);
+        return response.data.data as PreparationBatch;
+    },
+
     async listBatches(params?: { expiring_in_days?: number; location_id?: string }) {
         const response = await api.get('/preparations/batches', { params });
         return response.data.data as PreparationBatch[];

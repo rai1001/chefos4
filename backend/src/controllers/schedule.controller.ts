@@ -2,12 +2,14 @@ import { Response } from 'express';
 import { AuthRequest } from '@/middleware/auth.middleware';
 import { ScheduleService } from '@/services/schedule.service';
 import { ScheduleRulesValidator } from '@/services/schedule-rules.validator';
+import { ScheduleGeneratorService } from '@/services/schedule-generator.service';
 import { AppError } from '@/utils/errors';
 import { logger } from '@/utils/logger';
 
 export class ScheduleController {
     private scheduleService = new ScheduleService();
     private rulesValidator = new ScheduleRulesValidator();
+    private generatorService = new ScheduleGeneratorService();
 
     async createMonth(req: AuthRequest, res: Response): Promise<void> {
         try {
@@ -95,6 +97,27 @@ export class ScheduleController {
             }
             logger.error(error, 'Error validating schedule month');
             res.status(500).json({ error: 'Failed to validate schedule month' });
+        }
+    }
+
+    async generateMonth(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const { from, to } = req.body || {};
+            const result = await this.generatorService.generate({
+                monthId: id,
+                organizationIds: req.user!.organizationIds,
+                from,
+                to,
+            });
+            res.json({ data: result });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.statusCode).json({ error: error.message });
+                return;
+            }
+            logger.error(error, 'Error generating schedule');
+            res.status(500).json({ error: 'Failed to generate schedule' });
         }
     }
 

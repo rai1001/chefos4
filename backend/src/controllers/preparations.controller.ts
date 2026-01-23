@@ -121,6 +121,52 @@ export class PreparationsController {
         }
     }
 
+    async createSimpleBatch(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const {
+                name,
+                unit_id,
+                produced_at,
+                quantity_produced,
+                expiry_date,
+                lot_code,
+                storage_location_id,
+            } = req.body;
+
+            if (!name || !unit_id || !produced_at || !quantity_produced) {
+                throw new AppError(400, 'name, unit_id, produced_at and quantity_produced are required');
+            }
+
+            const preparation = await this.preparationService.findOrCreate({
+                organizationId: req.user!.organizationIds[0],
+                name,
+                unitId: unit_id,
+                defaultShelfLifeDays: 0,
+            });
+
+            const data = await this.batchService.createBatch({
+                organizationId: req.user!.organizationIds[0],
+                preparationId: preparation.id,
+                producedAt: produced_at,
+                quantityProduced: Number(quantity_produced),
+                expiryDate: expiry_date || null,
+                lotCode: lot_code || null,
+                storageLocationId: storage_location_id || null,
+                createdBy: req.user!.id,
+                ingredients: [],
+            });
+
+            res.status(201).json({ data });
+        } catch (error: any) {
+            if (error instanceof AppError) {
+                res.status(error.statusCode).json({ error: error.message });
+                return;
+            }
+            logger.error(error, 'Error creating simple preparation batch');
+            res.status(500).json({ error: 'Failed to create preparation batch' });
+        }
+    }
+
     async listBatches(req: AuthRequest, res: Response): Promise<void> {
         try {
             const { expiring_in_days, location_id } = req.query;

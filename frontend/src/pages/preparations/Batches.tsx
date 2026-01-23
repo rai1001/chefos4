@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { preparationsService } from '@/services/preparations.service';
-import { ingredientsService } from '@/services/ingredients.service';
 import { inventoryService } from '@/services/inventory.service';
+import { recipesService } from '@/services/recipes.service';
+import { eventsService } from '@/services/events.service';
+import { unitsService } from '@/services/units.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,16 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import { ExpiryScanCapture } from '@/components/preparations/ExpiryScanCapture';
 
-interface IngredientUsage {
-    ingredient_id: string;
-    unit_id: string;
-    quantity_used: string;
-}
+type SourceType = 'manual' | 'recipe' | 'event';
 
 export default function PreparationBatchesPage() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const [preparationId, setPreparationId] = useState('');
+    const [sourceType, setSourceType] = useState<SourceType>('manual');
+    const [recipeId, setRecipeId] = useState('');
+    const [eventId, setEventId] = useState('');
+    const [name, setName] = useState('');
+    const [unitId, setUnitId] = useState('');
     const [producedAt, setProducedAt] = useState('');
     const [quantityProduced, setQuantityProduced] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
@@ -27,14 +29,6 @@ export default function PreparationBatchesPage() {
     const [locationId, setLocationId] = useState('');
     const [expiringDays, setExpiringDays] = useState('30');
     const [labelCount, setLabelCount] = useState('1');
-    const [ingredientsUsed, setIngredientsUsed] = useState<IngredientUsage[]>([
-        { ingredient_id: '', unit_id: '', quantity_used: '' },
-    ]);
-
-    const { data: preparations = [] } = useQuery({
-        queryKey: ['preparations'],
-        queryFn: () => preparationsService.list(),
-    });
 
     const { data: batches = [] } = useQuery({
         queryKey: ['preparation-batches', expiringDays],
@@ -44,9 +38,19 @@ export default function PreparationBatchesPage() {
             }),
     });
 
-    const { data: ingredientsData } = useQuery({
-        queryKey: ['ingredients', 'all'],
-        queryFn: () => ingredientsService.getAll({ limit: 1000 }),
+    const { data: recipesData } = useQuery({
+        queryKey: ['recipes', 'all'],
+        queryFn: () => recipesService.getAll(),
+    });
+
+    const { data: eventsData } = useQuery({
+        queryKey: ['events', 'all'],
+        queryFn: () => eventsService.getAll(),
+    });
+
+    const { data: units = [] } = useQuery({
+        queryKey: ['units'],
+        queryFn: () => unitsService.getAll(),
     });
 
     const { data: locations = [] } = useQuery({
@@ -54,26 +58,28 @@ export default function PreparationBatchesPage() {
         queryFn: () => inventoryService.listLocations(),
     });
 
-    const ingredients = ingredientsData?.data || [];
-    const ingredientMap = useMemo(() => new Map(ingredients.map((ing: any) => [ing.id, ing])), [ingredients]);
+    const recipes = recipesData?.data || [];
+    const events = eventsData?.data || [];
 
-    const selectedPreparation = preparations.find((prep) => prep.id === preparationId);
+    const selectedRecipe = useMemo(
+        () => recipes.find((item) => item.id === recipeId),
+        [recipes, recipeId]
+    );
+    const selectedEvent = useMemo(
+        () => events.find((item) => item.id === eventId),
+        [events, eventId]
+    );
 
     const createBatchMutation = useMutation({
         mutationFn: () =>
-            preparationsService.createBatch(preparationId, {
+            preparationsService.createSimpleBatch({
+                name,
+                unit_id: unitId,
                 produced_at: producedAt,
                 quantity_produced: Number(quantityProduced),
                 expiry_date: expiryDate || null,
                 lot_code: lotCode || null,
                 storage_location_id: locationId || null,
-                ingredients: ingredientsUsed
-                    .filter((item) => item.ingredient_id && item.quantity_used)
-                    .map((item) => ({
-                        ingredient_id: item.ingredient_id,
-                        unit_id: item.unit_id,
-                        quantity_used: Number(item.quantity_used),
-                    })),
             }),
         onSuccess: () => {
             setQuantityProduced('');
@@ -81,7 +87,11 @@ export default function PreparationBatchesPage() {
             setExpiryDate('');
             setLotCode('');
             setLocationId('');
-            setIngredientsUsed([{ ingredient_id: '', unit_id: '', quantity_used: '' }]);
+            setName('');
+            setUnitId('');
+            setRecipeId('');
+            setEventId('');
+            setSourceType('manual');
             queryClient.invalidateQueries({ queryKey: ['preparation-batches'] });
             toast({ title: 'Lote creado' });
         },
@@ -112,48 +122,82 @@ export default function PreparationBatchesPage() {
         },
     });
 
-    const addIngredientLine = () => {
-        setIngredientsUsed((prev) => [...prev, { ingredient_id: '', unit_id: '', quantity_used: '' }]);
-    };
-
-    const updateIngredientLine = (index: number, patch: Partial<IngredientUsage>) => {
-        setIngredientsUsed((prev) =>
-            prev.map((item, idx) => (idx === index ? { ...item, ...patch } : item))
-        );
-    };
-
-    const autoExpiry = () => {
-        if (!selectedPreparation?.default_shelf_life_days || !producedAt) {
-            return;
+    useEffect(() => {
+        if (sourceType === 'recipe' && selectedRecipe) {
+            setName(selectedRecipe.name);
         }
-        const base = new Date(`${producedAt}T00:00:00Z`);
-        base.setUTCDate(base.getUTCDate() + selectedPreparation.default_shelf_life_days);
-        setExpiryDate(base.toISOString().slice(0, 10));
-    };
+        if (sourceType === 'event' && selectedEvent) {
+            setName(`Restos ${selectedEvent.name}`);
+        }
+        if (sourceType === 'manual') {
+            setRecipeId('');
+            setEventId('');
+        }
+    }, [sourceType, selectedRecipe, selectedEvent]);
 
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold">Lotes de preparacion</h1>
-                <p className="text-muted-foreground">Crea lotes y imprime etiquetas.</p>
+                <h1 className="text-3xl font-bold">Preparaciones</h1>
+                <p className="text-muted-foreground">Registra preparaciones y genera etiquetas.</p>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Nuevo lote</CardTitle>
+                    <CardTitle>Nueva preparacion</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Select value={preparationId} onValueChange={(value) => {
-                        setPreparationId(value);
-                        autoExpiry();
-                    }}>
+                    <Select value={sourceType} onValueChange={(value) => setSourceType(value as SourceType)}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Preparacion" />
+                            <SelectValue placeholder="Origen" />
                         </SelectTrigger>
                         <SelectContent>
-                            {preparations.map((prep) => (
-                                <SelectItem key={prep.id} value={prep.id}>
-                                    {prep.name}
+                            <SelectItem value="manual">Manual</SelectItem>
+                            <SelectItem value="recipe">Receta</SelectItem>
+                            <SelectItem value="event">Evento (restos)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {sourceType === 'recipe' && (
+                        <Select value={recipeId} onValueChange={setRecipeId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Receta" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {recipes.map((recipe) => (
+                                    <SelectItem key={recipe.id} value={recipe.id}>
+                                        {recipe.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                    {sourceType === 'event' && (
+                        <Select value={eventId} onValueChange={setEventId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Evento" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {events.map((event) => (
+                                    <SelectItem key={event.id} value={event.id}>
+                                        {event.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                    <Input
+                        placeholder="Nombre"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                    <Select value={unitId} onValueChange={setUnitId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Unidad" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {units.map((unit) => (
+                                <SelectItem key={unit.id} value={unit.id}>
+                                    {unit.name} ({unit.abbreviation})
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -162,7 +206,6 @@ export default function PreparationBatchesPage() {
                         type="date"
                         value={producedAt}
                         onChange={(e) => setProducedAt(e.target.value)}
-                        onBlur={autoExpiry}
                     />
                     <Input
                         type="number"
@@ -194,58 +237,12 @@ export default function PreparationBatchesPage() {
                         </SelectContent>
                     </Select>
 
-                    <div className="md:col-span-3 space-y-3">
-                        <div className="text-sm font-semibold">Ingredientes usados</div>
-                        {ingredientsUsed.map((line, index) => {
-                            const ingredient = ingredientMap.get(line.ingredient_id);
-                            return (
-                                <div key={`${index}-${line.ingredient_id}`} className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                                    <Select
-                                        value={line.ingredient_id}
-                                        onValueChange={(value) => {
-                                            const selected = ingredientMap.get(value);
-                                            updateIngredientLine(index, {
-                                                ingredient_id: value,
-                                                unit_id: selected?.unit_id || '',
-                                            });
-                                        }}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Ingrediente" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ingredients.map((ing: any) => (
-                                                <SelectItem key={ing.id} value={ing.id}>
-                                                    {ing.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <Input
-                                        type="number"
-                                        placeholder={`Cantidad (${ingredient?.units?.abbreviation || '-'})`}
-                                        value={line.quantity_used}
-                                        onChange={(e) =>
-                                            updateIngredientLine(index, { quantity_used: e.target.value })
-                                        }
-                                    />
-                                    <div className="text-xs text-muted-foreground self-center">
-                                        Unidad: {ingredient?.units?.abbreviation || 'N/D'}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        <Button type="button" variant="outline" onClick={addIngredientLine}>
-                            Agregar ingrediente
-                        </Button>
-                    </div>
-
                     <div className="md:col-span-3 flex justify-end">
                         <Button
                             onClick={() => createBatchMutation.mutate()}
-                            disabled={!preparationId || !producedAt || !quantityProduced}
+                            disabled={!name || !unitId || !producedAt || !quantityProduced}
                         >
-                            Crear lote
+                            Crear preparacion
                         </Button>
                     </div>
                 </CardContent>
