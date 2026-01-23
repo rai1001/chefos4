@@ -105,4 +105,50 @@ export class InventoryService {
         if (error) throw error;
         return { deleted: true };
     }
+
+    async listStockSummary(organizationIds: string[]) {
+        const { data: ingredients, error } = await supabase
+            .from('ingredients')
+            .select(`
+          id,
+          name,
+          cost_price,
+          stock_current,
+          product_families (id, name),
+          suppliers (id, name),
+          units!ingredients_unit_id_fkey (id, name, abbreviation)
+        `)
+            .in('organization_id', organizationIds)
+            .is('deleted_at', null)
+            .gt('stock_current', 0)
+            .order('name');
+
+        if (error) throw error;
+
+        const ingredientIds = (ingredients || []).map((row: any) => row.id);
+        if (ingredientIds.length === 0) return [];
+
+        const { data: batches, error: batchesError } = await supabase
+            .from('inventory_batches')
+            .select('ingredient_id, expiry_date, quantity_current')
+            .in('organization_id', organizationIds)
+            .in('ingredient_id', ingredientIds)
+            .gt('quantity_current', 0);
+
+        if (batchesError) throw batchesError;
+
+        const nextExpiryByIngredient = new Map<string, string>();
+        (batches || []).forEach((batch: any) => {
+            if (!batch.expiry_date) return;
+            const current = nextExpiryByIngredient.get(batch.ingredient_id);
+            if (!current || batch.expiry_date < current) {
+                nextExpiryByIngredient.set(batch.ingredient_id, batch.expiry_date);
+            }
+        });
+
+        return (ingredients || []).map((row: any) => ({
+            ...row,
+            next_expiry_date: nextExpiryByIngredient.get(row.id) || null,
+        }));
+    }
 }

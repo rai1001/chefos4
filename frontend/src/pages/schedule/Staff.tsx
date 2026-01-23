@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 
 interface EmployeeOption {
@@ -19,11 +21,17 @@ export default function StaffPage() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [memberId, setMemberId] = useState('');
+    const [displayName, setDisplayName] = useState('');
+    const [contactEmail, setContactEmail] = useState('');
+    const [staffType, setStaffType] = useState('INTERNAL');
     const [roleInKitchen, setRoleInKitchen] = useState('');
     const [skills, setSkills] = useState('');
     const [weeklyHours, setWeeklyHours] = useState('');
     const [maxHours, setMaxHours] = useState('');
     const [vacationDays, setVacationDays] = useState('');
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [inviteRole, setInviteRole] = useState('COOK');
 
     const { data: staff = [] } = useQuery({
         queryKey: ['staff'],
@@ -44,7 +52,10 @@ export default function StaffPage() {
     const createMutation = useMutation({
         mutationFn: () =>
             staffService.create({
-                member_id: memberId,
+                member_id: memberId || null,
+                display_name: displayName || null,
+                contact_email: contactEmail || null,
+                staff_type: staffType || null,
                 role_in_kitchen: roleInKitchen || null,
                 skills: skills ? skills.split(',').map((value) => value.trim()).filter(Boolean) : [],
                 contract: {
@@ -55,6 +66,9 @@ export default function StaffPage() {
             }),
         onSuccess: () => {
             setMemberId('');
+            setDisplayName('');
+            setContactEmail('');
+            setStaffType('INTERNAL');
             setRoleInKitchen('');
             setSkills('');
             setWeeklyHours('');
@@ -79,11 +93,77 @@ export default function StaffPage() {
         },
     });
 
+    const inviteMutation = useMutation({
+        mutationFn: () => api.post('/hr/invite', { email: inviteEmail, role: inviteRole }),
+        onSuccess: () => {
+            setInviteEmail('');
+            setInviteRole('COOK');
+            setIsInviteOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['hr-employees'] });
+            toast({ title: 'Invitacion enviada', description: `Se envio a ${inviteEmail}` });
+        },
+        onError: (error: any) => {
+            toast({
+                title: 'Error',
+                description: error.response?.data?.error || 'No se pudo enviar la invitacion',
+                variant: 'destructive',
+            });
+        },
+    });
+
     return (
         <div className="space-y-6">
-            <div>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
                 <h1 className="text-3xl font-bold">Equipo</h1>
                 <p className="text-muted-foreground">Gestiona perfiles, contratos y habilidades.</p>
+                </div>
+                <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline">Invitar empleado</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Invitar al equipo</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="invite-email">Correo</Label>
+                                <Input
+                                    id="invite-email"
+                                    placeholder="empleado@empresa.com"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="invite-role">Rol</Label>
+                                <Select value={inviteRole} onValueChange={setInviteRole}>
+                                    <SelectTrigger id="invite-role">
+                                        <SelectValue placeholder="Selecciona un rol" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    <SelectItem value="COOK">Cocinero</SelectItem>
+                                    <SelectItem value="SERVER">Sala / Camarero</SelectItem>
+                                    <SelectItem value="AREA_MANAGER">Responsable</SelectItem>
+                                    <SelectItem value="ORG_ADMIN">Administrador</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={() => inviteMutation.mutate()}
+                                disabled={!inviteEmail || inviteMutation.isPending}
+                            >
+                                Enviar invitacion
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <Card>
@@ -96,13 +176,40 @@ export default function StaffPage() {
                             <SelectValue placeholder="Seleccionar empleado" />
                         </SelectTrigger>
                         <SelectContent>
-                            {availableEmployees.map((employee) => (
-                                <SelectItem key={employee.id} value={employee.id || ''}>
-                                    {employee.user?.name || employee.user?.email}
-                                </SelectItem>
-                            ))}
+                            {availableEmployees
+                                .filter((employee) => employee.id)
+                                .map((employee) => (
+                                    <SelectItem key={employee.id} value={employee.id as string}>
+                                        {employee.user?.name || employee.user?.email}
+                                    </SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
+                    {availableEmployees.length === 0 && (
+                        <div className="md:col-span-3 text-xs text-muted-foreground">
+                            No hay empleados disponibles. Envia una invitacion y espera a que acepten para crear el perfil.
+                        </div>
+                    )}
+                    <Input
+                        placeholder="Nombre (si no hay usuario)"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                    />
+                    <Select value={staffType} onValueChange={setStaffType}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="INTERNAL">Interno</SelectItem>
+                            <SelectItem value="PRACTICAS">Practicas</SelectItem>
+                            <SelectItem value="EXTRA">Extra</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Input
+                        placeholder="Email contacto (opcional)"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                    />
                     <Input
                         placeholder="Rol en cocina"
                         value={roleInKitchen}
@@ -134,7 +241,7 @@ export default function StaffPage() {
                     <div className="md:col-span-3 flex justify-end">
                         <Button
                             onClick={() => createMutation.mutate()}
-                            disabled={!memberId || createMutation.isPending}
+                            disabled={(!memberId && !displayName) || createMutation.isPending}
                         >
                             Crear
                         </Button>
@@ -217,7 +324,7 @@ function StaffCard({
         <Card>
             <CardHeader>
                 <CardTitle>
-                    {staff.member?.user?.name || staff.member?.user?.email || 'Staff'}
+                    {staff.display_name || staff.member?.user?.name || staff.member?.user?.email || 'Staff'}
                 </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">

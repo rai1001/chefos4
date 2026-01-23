@@ -10,7 +10,7 @@ import { inventoryService } from '@/services/inventory.service';
 
 type ItemEdit = { counted_qty: number; notes?: string | null };
 
-export default function InventoryCycleCounts() {
+export default function InventoryCycleCounts({ embedded = false }: { embedded?: boolean }) {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [name, setName] = useState('');
@@ -91,10 +91,12 @@ export default function InventoryCycleCounts() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Recuentos</h1>
-                <p className="text-muted-foreground">Crea recuentos cíclicos y ajusta el stock.</p>
-            </div>
+            {!embedded && (
+                <div>
+                    <h1 className="text-3xl font-bold">Recuentos</h1>
+                    <p className="text-muted-foreground">Crea recuentos cíclicos y ajusta el stock.</p>
+                </div>
+            )}
 
             <Card>
                 <CardHeader>

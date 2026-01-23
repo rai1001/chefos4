@@ -38,7 +38,7 @@ export default function TimeOffPage() {
         () =>
             staff.map((item) => ({
                 id: item.id,
-                label: item.member?.user?.name || item.member?.user?.email || item.id,
+                label: item.display_name || item.member?.user?.name || item.member?.user?.email || item.id,
             })),
         [staff]
     );
@@ -144,7 +144,9 @@ export default function TimeOffPage() {
                         <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between pt-6">
                             <div>
                                 <div className="font-semibold">
-                                    {request.staff?.member?.user?.name || request.staff?.member?.user?.email}
+                                    {request.staff?.display_name ||
+                                        request.staff?.member?.user?.name ||
+                                        request.staff?.member?.user?.email}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                     {request.type} • {request.start_date} → {request.end_date} • {request.status}

@@ -3,7 +3,6 @@ import { Edit, Trash2, Package } from 'lucide-react';
 import { Ingredient } from '@/services/ingredients.service';
 import { useDeleteIngredient } from '@/hooks/useIngredients';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
     Table,
     TableBody,
@@ -72,7 +71,6 @@ export function IngredientsList({
                             <TableHead>Nombre</TableHead>
                             <TableHead>Familia</TableHead>
                             <TableHead>Proveedor</TableHead>
-                            <TableHead>Stock</TableHead>
                             <TableHead>Precio</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
@@ -91,18 +89,6 @@ export function IngredientsList({
                                 </TableCell>
                                 <TableCell>
                                     {ingredient.suppliers?.name || '-'}
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <span className={ingredient.stock_current <= ingredient.stock_min ? "text-destructive font-bold" : ""}>
-                                            {ingredient.stock_current} {ingredient.units.abbreviation}
-                                        </span>
-                                        {ingredient.stock_current <= ingredient.stock_min && (
-                                            <Badge variant="destructive" className="text-[10px] h-4">
-                                                Bajo
-                                            </Badge>
-                                        )}
-                                    </div>
                                 </TableCell>
                                 <TableCell>
                                     {formatCurrency(ingredient.cost_price)}

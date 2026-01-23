@@ -54,7 +54,22 @@ export interface InventoryAlert {
     resolved_at?: string | null;
 }
 
+export interface InventoryStockItem {
+    id: string;
+    name: string;
+    cost_price: number;
+    stock_current: number;
+    next_expiry_date?: string | null;
+    product_families?: { id: string; name: string };
+    suppliers?: { id: string; name: string };
+    units?: { id: string; name: string; abbreviation: string };
+}
+
 export const inventoryService = {
+    async listStockSummary() {
+        const response = await api.get('/inventory/stock');
+        return response.data.data as InventoryStockItem[];
+    },
     async listBatches(params?: { ingredient_id?: string; expiring_in_days?: number; location_id?: string }) {
         const response = await api.get('/inventory/batches', { params });
         return response.data.data as InventoryBatch[];

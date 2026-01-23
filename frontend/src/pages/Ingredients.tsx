@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Plus, Search, AlertTriangle, Upload } from 'lucide-react';
-import { useIngredients, useLowStockIngredients } from '@/hooks/useIngredients';
+import { Plus, Search, Upload } from 'lucide-react';
+import { useIngredients } from '@/hooks/useIngredients';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IngredientsList } from '@/components/ingredients/IngredientsList';
 import { IngredientForm } from '@/components/ingredients/IngredientForm';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     Dialog,
     DialogContent,
@@ -14,8 +13,6 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { CSVImportWizard } from '@/components/ingredients/CSVImportWizard';
-import { Download } from 'lucide-react';
-import { api } from '@/services/api';
 import { Ingredient } from '@/services/ingredients.service';
 
 
@@ -28,8 +25,6 @@ export default function Ingredients() {
 
 
     const { data, isLoading } = useIngredients({ page, limit: 20, search });
-    const { data: lowStock } = useLowStockIngredients();
-
 
     return (
         <div className="space-y-6">
@@ -38,7 +33,7 @@ export default function Ingredients() {
                 <div>
                     <h1 className="text-3xl font-bold">Ingredientes</h1>
                     <p className="text-muted-foreground">
-                        Gestiona tu catálogo de productos
+                        Gestiona el catálogo para compras y recetas
                     </p>
                 </div>
 
@@ -58,29 +53,6 @@ export default function Ingredients() {
                             <CSVImportWizard onComplete={() => { }} />
                         </DialogContent>
                     </Dialog>
-
-                    <Button
-                        variant="outline"
-                        className="btn-large"
-                        onClick={async () => {
-                            try {
-                                const response = await api.get('/reports/inventory', { responseType: 'blob' });
-                                const url = window.URL.createObjectURL(new Blob([response.data]));
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.setAttribute('download', 'inventario.xlsx');
-                                document.body.appendChild(link);
-                                link.click();
-                                link.remove();
-                            } catch (error) {
-                                console.error('Error al exportar inventario:', error);
-                            }
-                        }}
-                    >
-                        <Download className="mr-2 h-5 w-5" />
-                        Exportar Excel
-                    </Button>
-
 
                     <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                         <DialogTrigger asChild>
@@ -118,17 +90,6 @@ export default function Ingredients() {
                     </Dialog>
                 </div>
             </div>
-
-
-            {/* Low Stock Alert */}
-            {lowStock && lowStock.length > 0 && (
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                        <strong>{lowStock.length} productos</strong> tienen stock bajo el mínimo
-                    </AlertDescription>
-                </Alert>
-            )}
 
 
             {/* Search Bar */}

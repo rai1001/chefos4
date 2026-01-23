@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { ExpiryScanCapture } from '@/components/inventory/ExpiryScanCapture';
 
-export default function InventoryExpiry() {
+export default function InventoryExpiry({ embedded = false }: { embedded?: boolean }) {
     const [expiringDays, setExpiringDays] = useState<string>('30');
     const queryClient = useQueryClient();
 
@@ -32,10 +32,12 @@ export default function InventoryExpiry() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Caducidades</h1>
-                <p className="text-muted-foreground">Gestiona lotes y fechas de caducidad.</p>
-            </div>
+            {!embedded && (
+                <div>
+                    <h1 className="text-3xl font-bold">Caducidades</h1>
+                    <p className="text-muted-foreground">Gestiona lotes y fechas de caducidad.</p>
+                </div>
+            )}
 
             <Card>
                 <CardHeader>

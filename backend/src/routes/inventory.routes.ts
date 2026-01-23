@@ -6,6 +6,7 @@ const router = Router();
 const controller = new InventoryController();
 
 router.get('/batches', authMiddleware, controller.listBatches.bind(controller));
+router.get('/stock', authMiddleware, controller.listStockSummary.bind(controller));
 router.patch('/batches/:id', authMiddleware, controller.updateBatch.bind(controller));
 router.post('/batches/:id/expiry/scan', authMiddleware, uploadImageMiddleware, controller.scanExpiry.bind(controller));
 

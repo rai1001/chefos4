@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 
-export default function InventoryReception() {
+export default function InventoryReception({ embedded = false }: { embedded?: boolean }) {
     const queryClient = useQueryClient();
     const { data: notes = [] } = useQuery({
         queryKey: ['delivery-notes'],
@@ -42,10 +42,12 @@ export default function InventoryReception() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Recepción de Albaranes</h1>
-                <p className="text-muted-foreground">Revisa y conecta líneas OCR con ingredientes.</p>
-            </div>
+            {!embedded && (
+                <div>
+                    <h1 className="text-3xl font-bold">Recepción de Albaranes</h1>
+                    <p className="text-muted-foreground">Revisa y conecta líneas OCR con ingredientes.</p>
+                </div>
+            )}
 
             <div className="space-y-4">
                 {notes.map((note) => (

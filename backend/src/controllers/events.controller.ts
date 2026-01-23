@@ -169,10 +169,18 @@ export class EventsController {
             const importer = new (await import('@/services/event-importer.service')).EventImporterService();
 
             if (dryRun === 'true') {
-                const analysis = await importer.analyzeCSV(file.buffer, organizationId);
+                const analysis = await importer.analyzeCSV(
+                    file.buffer,
+                    organizationId,
+                    file.originalname
+                );
                 res.json({ data: analysis });
             } else {
-                const result = await importer.executeImport(file.buffer, organizationId);
+                const result = await importer.executeImport(
+                    file.buffer,
+                    organizationId,
+                    file.originalname
+                );
                 res.json({ data: result });
             }
         } catch (error) {

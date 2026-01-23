@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { inventoryService } from '@/services/inventory.service';
 
-export default function InventoryLocations() {
+export default function InventoryLocations({ embedded = false }: { embedded?: boolean }) {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [name, setName] = useState('');
@@ -55,10 +55,12 @@ export default function InventoryLocations() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Ubicaciones</h1>
-                <p className="text-muted-foreground">Gestiona las ubicaciones de almacen.</p>
-            </div>
+            {!embedded && (
+                <div>
+                    <h1 className="text-3xl font-bold">Ubicaciones</h1>
+                    <p className="text-muted-foreground">Gestiona las ubicaciones de almacen.</p>
+                </div>
+            )}
 
             <Card>
                 <CardHeader>

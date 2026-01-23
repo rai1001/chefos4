@@ -78,5 +78,10 @@ export const eventsService = {
 
     async delete(id: string) {
         await api.delete(`/events/${id}`);
+    },
+
+    async generatePurchaseOrders(eventId: string) {
+        const response = await api.post(`/events/${eventId}/generate-purchase-orders`);
+        return response.data;
     }
 };

@@ -2,6 +2,9 @@ import { api } from './api';
 
 export interface StaffProfile {
     id: string;
+    display_name?: string | null;
+    contact_email?: string | null;
+    staff_type?: string | null;
     role_in_kitchen?: string | null;
     skills?: string[] | null;
     active: boolean;
@@ -31,7 +34,10 @@ export const staffService = {
     },
 
     async create(payload: {
-        member_id: string;
+        member_id?: string | null;
+        display_name?: string | null;
+        contact_email?: string | null;
+        staff_type?: string | null;
         role_in_kitchen?: string | null;
         skills?: string[];
         active?: boolean;

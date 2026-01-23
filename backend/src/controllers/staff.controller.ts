@@ -20,15 +20,27 @@ export class StaffController {
     async create(req: AuthRequest, res: Response): Promise<void> {
         try {
             const organizationId = req.user!.organizationIds[0];
-            const { member_id, role_in_kitchen, skills, active, contract } = req.body;
+            const {
+                member_id,
+                display_name,
+                contact_email,
+                staff_type,
+                role_in_kitchen,
+                skills,
+                active,
+                contract
+            } = req.body;
 
-            if (!member_id) {
-                throw new AppError(400, 'member_id is required');
+            if (!member_id && !display_name) {
+                throw new AppError(400, 'display_name is required when member_id is missing');
             }
 
             const staff = await this.staffService.createStaff({
                 organizationId,
                 memberId: member_id,
+                displayName: display_name,
+                contactEmail: contact_email,
+                staffType: staff_type,
                 roleInKitchen: role_in_kitchen,
                 skills,
                 active,

@@ -42,4 +42,29 @@ export class ReportsController {
             res.status(500).json({ error: 'Internal server error' });
         }
     }
+
+    async exportPurchaseOrdersPDF(req: Request, res: Response) {
+        try {
+            const { event_id } = req.query;
+            // @ts-ignore - organizationIds comes from authMiddleware
+            const organizationId = req.user?.organizationIds[0];
+
+            if (!organizationId) {
+                return res.status(400).json({ error: 'No organization found' });
+            }
+
+            const buffer = await this.reportService.generatePurchaseOrdersPDF(
+                organizationId,
+                event_id ? String(event_id) : undefined
+            );
+
+            const suffix = event_id ? `event-${event_id}` : 'all';
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=ordenes-compra-${suffix}.pdf`);
+            res.send(buffer);
+        } catch (error) {
+            logger.error('Error exporting purchase orders PDF:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
 }

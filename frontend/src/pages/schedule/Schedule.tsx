@@ -30,7 +30,7 @@ export default function SchedulePage() {
         () =>
             staff.map((item) => ({
                 id: item.id,
-                name: item.member?.user?.name || item.member?.user?.email || item.id,
+                name: item.display_name || item.member?.user?.name || item.member?.user?.email || item.id,
             })),
         [staff]
     );

@@ -1,20 +1,37 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Plus, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EventCalendar } from '@/components/events/EventCalendar';
 import { EventForm } from '@/components/events/EventForm';
 import { EventImportDialog } from '@/components/events/EventImportDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { eventsService } from '@/services/events.service';
 
 export default function Events() {
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isImportOpen, setIsImportOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [refreshKey, setRefreshKey] = useState(0);
+
+    const { data: selectedEvent, isLoading: isLoadingEvent } = useQuery({
+        queryKey: ['event', selectedEventId],
+        queryFn: () => eventsService.getById(selectedEventId as string),
+        enabled: !!selectedEventId,
+    });
 
     const handleSuccess = () => {
         setIsCreateOpen(false);
         setIsImportOpen(false);
+        setIsEditOpen(false);
+        setSelectedEventId(null);
         setRefreshKey(prev => prev + 1); // Trick to force calendar refresh
+    };
+
+    const handleSelectEvent = (event: any) => {
+        setSelectedEventId(event.id);
+        setIsEditOpen(true);
     };
 
     return (
@@ -46,7 +63,18 @@ export default function Events() {
                 onSuccess={handleSuccess}
             />
 
-            <EventCalendar key={refreshKey} />
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle>Editar Evento</DialogTitle></DialogHeader>
+                    {isLoadingEvent ? (
+                        <div className="py-6 text-sm text-muted-foreground">Cargando evento...</div>
+                    ) : (
+                        selectedEvent && <EventForm initialData={selectedEvent} onSuccess={handleSuccess} />
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <EventCalendar key={refreshKey} onSelectEvent={handleSelectEvent} />
         </div>
     );
 }

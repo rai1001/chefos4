@@ -135,6 +135,16 @@ export class InventoryController {
         }
     }
 
+    async listStockSummary(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const stock = await this.inventoryService.listStockSummary(req.user!.organizationIds);
+            res.json({ data: stock });
+        } catch (error) {
+            logger.error('Error listing inventory stock:', error);
+            res.status(500).json({ error: 'Failed to fetch inventory stock' });
+        }
+    }
+
     async createLocation(req: AuthRequest, res: Response): Promise<void> {
         try {
             const { name, type } = req.body;

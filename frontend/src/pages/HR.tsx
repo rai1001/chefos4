@@ -16,7 +16,7 @@ export default function HRManagement() {
     const [employees, setEmployees] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isInviteOpen, setIsInviteOpen] = useState(false);
-    const [inviteData, setInviteData] = useState({ email: '', role: 'WAITER' });
+    const [inviteData, setInviteData] = useState({ email: '', role: 'COOK' });
     const { toast } = useToast();
 
     const fetchEmployees = async () => {
@@ -40,7 +40,7 @@ export default function HRManagement() {
             await api.post('/hr/invite', inviteData);
             toast({ title: 'Invitación enviada', description: `Se ha enviado una invitación a ${inviteData.email}` });
             setIsInviteOpen(false);
-            setInviteData({ email: '', role: 'WAITER' });
+            setInviteData({ email: '', role: 'COOK' });
         } catch (error: any) {
             toast({
                 title: 'Error',
@@ -89,9 +89,9 @@ export default function HRManagement() {
                                             <SelectValue placeholder="Selecciona un rol" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="CHEF">Chef</SelectItem>
-                                            <SelectItem value="WAITER">Camarero / Sala</SelectItem>
-                                            <SelectItem value="MANAGER">Gestor</SelectItem>
+                                            <SelectItem value="COOK">Cocinero</SelectItem>
+                                            <SelectItem value="SERVER">Sala / Camarero</SelectItem>
+                                            <SelectItem value="AREA_MANAGER">Responsable</SelectItem>
                                             <SelectItem value="ORG_ADMIN">Administrador</SelectItem>
                                         </SelectContent>
                                     </Select>

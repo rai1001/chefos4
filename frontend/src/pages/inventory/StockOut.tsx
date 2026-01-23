@@ -16,7 +16,7 @@ const movementOptions = [
     { label: 'Ajuste', value: 'ADJUSTMENT' },
 ];
 
-export default function InventoryStockOut() {
+export default function InventoryStockOut({ embedded = false }: { embedded?: boolean }) {
     const { toast } = useToast();
     const [barcode, setBarcode] = useState('');
     const [ingredientId, setIngredientId] = useState('');
@@ -65,10 +65,12 @@ export default function InventoryStockOut() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold">Salidas de almacen</h1>
-                <p className="text-muted-foreground">Escanea un codigo o selecciona un ingrediente.</p>
-            </div>
+            {!embedded && (
+                <div>
+                    <h1 className="text-3xl font-bold">Salidas de almacen</h1>
+                    <p className="text-muted-foreground">Escanea un codigo o selecciona un ingrediente.</p>
+                </div>
+            )}
 
             <Card>
                 <CardHeader>

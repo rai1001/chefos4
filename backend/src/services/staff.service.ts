@@ -42,7 +42,10 @@ export class StaffService {
 
     async createStaff(params: {
         organizationId: string;
-        memberId: string;
+        memberId?: string | null;
+        displayName?: string | null;
+        contactEmail?: string | null;
+        staffType?: string | null;
         roleInKitchen?: string | null;
         skills?: any[] | null;
         active?: boolean;
@@ -53,13 +56,26 @@ export class StaffService {
             rest_min_hours_between_shifts?: number | null;
         };
     }) {
-        const { organizationId, memberId, roleInKitchen, skills, active, contract } = params;
+        const {
+            organizationId,
+            memberId,
+            displayName,
+            contactEmail,
+            staffType,
+            roleInKitchen,
+            skills,
+            active,
+            contract
+        } = params;
 
         const { data: staff, error } = await supabase
             .from('staff_profiles')
             .insert({
                 organization_id: organizationId,
-                member_id: memberId,
+                member_id: memberId || null,
+                display_name: displayName || null,
+                contact_email: contactEmail || null,
+                staff_type: staffType || 'INTERNAL',
                 role_in_kitchen: roleInKitchen || null,
                 skills: skills || [],
                 active: active ?? true,

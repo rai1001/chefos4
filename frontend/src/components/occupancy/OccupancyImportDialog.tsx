@@ -1,19 +1,19 @@
-
 import { useState } from 'react';
 import { Upload, FileText, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { api } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
+import { occupancyService, OccupancyImportType } from '@/services/occupancy.service';
 
-interface EventImportDialogProps {
+interface OccupancyImportDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    importType: OccupancyImportType;
     onSuccess: () => void;
 }
 
-export function EventImportDialog({ open, onOpenChange, onSuccess }: EventImportDialogProps) {
+export function OccupancyImportDialog({ open, onOpenChange, importType, onSuccess }: OccupancyImportDialogProps) {
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [preview, setPreview] = useState<any>(null);
@@ -30,19 +30,15 @@ export function EventImportDialog({ open, onOpenChange, onSuccess }: EventImport
             setImportResult(null);
             handlePreview(selected);
         } else {
-            setError('Por favor sube un archivo CSV o Excel válido.');
+            setError('Por favor sube un archivo CSV o Excel valido.');
         }
     };
 
     const handlePreview = async (selectedFile: File) => {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('dryRun', 'true');
-
         try {
             setIsLoading(true);
-            const res = await api.post('/events/import', formData);
-            setPreview(res.data.data);
+            const res = await occupancyService.importFile(selectedFile, importType, true);
+            setPreview(res);
         } catch (err: any) {
             setError('Error al analizar el CSV/Excel: ' + (err.response?.data?.error || err.message));
         } finally {
@@ -52,29 +48,19 @@ export function EventImportDialog({ open, onOpenChange, onSuccess }: EventImport
 
     const handleImport = async () => {
         if (!file) return;
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('dryRun', 'false');
-
         try {
             setIsLoading(true);
-            const res = await api.post('/events/import', formData);
-            const results = res.data.data;
-            setImportResult(results);
-
+            const res = await occupancyService.importFile(file, importType, false);
+            setImportResult(res);
             toast({
-                title: 'Importación Completada',
-                description: `Se importaron ${results.imported} eventos. ${results.errors.length} errores.`,
-                variant: results.errors.length > 0 ? 'destructive' : 'default',
+                title: 'Importacion completada',
+                description: `Se importaron ${res.imported} filas. ${res.errors.length} errores.`,
+                variant: res.errors.length > 0 ? 'destructive' : 'default',
             });
-
-            if (results.imported > 0) {
-                onSuccess();
-            }
+            if (res.imported > 0) onSuccess();
         } catch (err: any) {
             toast({
-                title: 'Error de Importación',
+                title: 'Error de importacion',
                 description: err.response?.data?.error || err.message,
                 variant: 'destructive',
             });
@@ -83,13 +69,15 @@ export function EventImportDialog({ open, onOpenChange, onSuccess }: EventImport
         }
     };
 
+    const title = importType === 'forecast' ? 'Importar previsiones' : 'Importar reales';
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Importar Eventos</DialogTitle>
+                    <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>
-                        Sube un archivo CSV con el formato: Nombre Evento, Tipo, Fecha Inicio, Pax, Recetas.
+                        Sube un CSV/Excel con columnas Fecha + Desayunos/Comidas/Cenas (las tres ultimas).
                     </DialogDescription>
                 </DialogHeader>
 
@@ -145,7 +133,9 @@ export function EventImportDialog({ open, onOpenChange, onSuccess }: EventImport
                             </div>
                             <ul className="text-xs space-y-1 text-blue-600/80">
                                 {preview.preview.map((row: any, i: number) => (
-                                    <li key={i} className="truncate">• {row.nombre_evento} ({row.fecha_inicio})</li>
+                                    <li key={i} className="truncate">
+                                        • {row.service_date} (D:{row.breakfasts ?? 0} C:{row.lunches ?? 0} Ce:{row.dinners ?? 0})
+                                    </li>
                                 ))}
                             </ul>
                         </div>
@@ -173,7 +163,7 @@ export function EventImportDialog({ open, onOpenChange, onSuccess }: EventImport
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                     <Button disabled={!file || isLoading} onClick={handleImport}>
-                        Confirmar Importación
+                        Confirmar importacion
                     </Button>
                 </DialogFooter>
             </DialogContent>

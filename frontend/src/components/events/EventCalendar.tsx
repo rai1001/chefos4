@@ -16,7 +16,11 @@ const EVENT_TYPE_STYLES = {
     BUFFET: 'bg-green-100 text-green-800 border-green-200',
 };
 
-export function EventCalendar() {
+interface EventCalendarProps {
+    onSelectEvent?: (event: any) => void;
+}
+
+export function EventCalendar({ onSelectEvent }: EventCalendarProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
@@ -81,6 +85,9 @@ export function EventCalendar() {
                                                 isUrgent && "border-red-500 ring-1 ring-red-500 bg-red-50"
                                             )}
                                             title={`${event.name} (${event.pax} pax)`}
+                                            role={onSelectEvent ? 'button' : undefined}
+                                            tabIndex={onSelectEvent ? 0 : undefined}
+                                            onClick={() => onSelectEvent?.(event)}
                                         >
                                             {isUrgent && <AlertCircle className="w-2.5 h-2.5 mr-1 text-red-500 shrink-0" />}
                                             {event.name}

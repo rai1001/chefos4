@@ -323,7 +323,7 @@ export class IngredientsController {
 
 
             const filtered = (data || []).filter(
-                (row) => Number(row.stock_current) <= Number(row.stock_min)
+                (row) => Number(row.stock_current) > 0 && Number(row.stock_current) <= Number(row.stock_min)
             );
             res.json({ data: filtered, total: filtered.length });
         } catch (error: any) {
