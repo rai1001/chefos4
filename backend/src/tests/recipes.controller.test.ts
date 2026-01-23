@@ -17,7 +17,7 @@ const createChain = (data: any, error: any = null, count: number | null = null) 
     order: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data, error }),
     then: (resolve: any) => resolve({ data, error, count }),
-});
+} as any);
 
 const mockRes = () => {
     const res: any = {};

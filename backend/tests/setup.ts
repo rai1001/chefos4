@@ -1,5 +1,10 @@
 import { beforeAll, afterAll, afterEach, vi } from 'vitest';
 
+// Set environment variables for tests
+process.env.SUPABASE_URL = 'https://example.supabase.co';
+process.env.SUPABASE_SERVICE_KEY = 'example-key';
+process.env.JWT_SECRET = 'test-secret';
+
 // Mock Supabase client
 const mockSupabase = {
     auth: {
