@@ -15,7 +15,11 @@ const createChain = (data: any) => ({
     select: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lt: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
     ilike: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data, error: null }),
     then: (resolve: any) => resolve({ data, error: null }),
 });

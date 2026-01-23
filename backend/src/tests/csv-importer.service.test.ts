@@ -187,19 +187,30 @@ describe('CSVImporterService', () => {
         });
 
         const result = await service.resolveSupplier('Proveedor A', 'org-1', new Map());
-        expect(result).toEqual({ id: 's1', created: false });
+        expect(result).toEqual({ id: 's1', created: false, default_family_id: null });
     });
 
     it('resolveSupplier returns linked supplier', async () => {
         const service: any = new CSVImporterService();
-        vi.spyOn(supabase, 'from').mockReturnValue(createChain(null) as any);
+        const fromSpy = vi.spyOn(supabase, 'from');
+        let supplierCalls = 0;
+        fromSpy.mockImplementation((table: string) => {
+            if (table === 'suppliers') {
+                supplierCalls += 1;
+                if (supplierCalls === 1) {
+                    return createChain(null) as any;
+                }
+                return createChain({ id: 's2', default_family_id: null }) as any;
+            }
+            return createChain({}) as any;
+        });
 
         const resolutions = new Map([
             ['proveedor a', { supplier_name: 'Proveedor A', action: 'LINK', link_to_id: 's2' }],
         ]);
 
         const result = await service.resolveSupplier('Proveedor A', 'org-1', resolutions);
-        expect(result).toEqual({ id: 's2', created: false });
+        expect(result).toEqual({ id: 's2', created: false, default_family_id: null });
     });
 
     it('resolveSupplier returns null when link has no target', async () => {
@@ -236,7 +247,7 @@ describe('CSVImporterService', () => {
         ]);
 
         const result = await service.resolveSupplier('Proveedor A', 'org-1', resolutions);
-        expect(result).toEqual({ id: 's3', created: true });
+        expect(result).toEqual({ id: 's3', created: true, default_family_id: null });
     });
 
     it('resolveSupplier returns null when create fails', async () => {
