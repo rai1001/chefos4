@@ -17,14 +17,19 @@ export function DeadlineAlerts({ className }: DeadlineAlertsProps) {
     const { data: events, isLoading } = useQuery({
         queryKey: ['urgent-events'],
         queryFn: async () => {
-            const res = await eventsService.getAll();
-            const allEvents = Array.isArray(res) ? res : res.data || [];
-
-            // Filter events in the next 7 days that are not CONFIRMED/COMPLETED
             const now = new Date();
             const nextWeek = addDays(now, 7);
 
-            return allEvents.filter((e: any) => {
+            // Fetch only urgent events (DRAFT status, next 7 days) from backend
+            const res = await eventsService.getAll({
+                start_date: now.toISOString(),
+                end_date: nextWeek.toISOString(),
+                status: 'DRAFT'
+            });
+            const fetchedEvents = Array.isArray(res) ? res : res.data || [];
+
+            // Double-check filter in case backend returns extra data
+            return fetchedEvents.filter((e: any) => {
                 const startDate = new Date(e.date_start);
                 return isBefore(startDate, nextWeek) && isBefore(now, startDate) && e.status === 'DRAFT';
             });

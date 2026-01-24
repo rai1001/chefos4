@@ -53,7 +53,7 @@ export interface CreateEventDto {
 export interface UpdateEventDto extends Partial<CreateEventDto> { }
 
 export const eventsService = {
-    async getAll(params?: { start_date?: string; end_date?: string }) {
+    async getAll(params?: { start_date?: string; end_date?: string; status?: string }) {
         const response = await api.get<{ data: Event[]; total: number }>(
             '/events',
             { params }
