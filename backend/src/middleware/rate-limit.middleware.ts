@@ -7,3 +7,11 @@ export const rateLimitMiddleware = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 });
+
+export const authRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 login/register requests per windowMs
+    message: 'Too many login attempts from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
