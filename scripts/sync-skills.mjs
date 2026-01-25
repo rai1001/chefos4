@@ -15,6 +15,7 @@ if (registryFlagIndex >= 0 && !registryPath) {
 }
 
 const home = os.homedir();
+const LINK_STUB_MAX_BYTES = 256;
 
 function expandHome(inputPath) {
   if (!inputPath) return inputPath;
@@ -34,28 +35,156 @@ async function hasSkillMd(dirPath) {
   return fileExists(path.join(dirPath, 'SKILL.md'));
 }
 
+async function isDirectoryEntry(entry, entryPath) {
+  if (entry.isDirectory()) {
+    return true;
+  }
+
+  if (entry.isSymbolicLink()) {
+    try {
+      const stats = await fs.stat(entryPath);
+      return stats.isDirectory();
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+function shouldSkipEntry(entryName) {
+  if (entryName === '__pycache__') {
+    return true;
+  }
+
+  if (entryName.endsWith('.pyc')) {
+    return true;
+  }
+
+  return false;
+}
+
+async function resolveLinkStub(filePath) {
+  try {
+    const stats = await fs.stat(filePath);
+    if (!stats.isFile() || stats.size > LINK_STUB_MAX_BYTES) {
+      return null;
+    }
+
+    if (path.extname(filePath)) {
+      return null;
+    }
+
+    const raw = await fs.readFile(filePath, 'utf8');
+    const trimmed = raw.trim();
+
+    if (!trimmed || trimmed.includes('\n') || trimmed.includes('\r')) {
+      return null;
+    }
+
+    if (!/^\.\.?(?:[\\/]|$)/.test(trimmed)) {
+      return null;
+    }
+
+    const resolved = path.resolve(path.dirname(filePath), trimmed);
+    if (!(await fileExists(resolved))) {
+      return null;
+    }
+
+    return resolved;
+  } catch {
+    return null;
+  }
+}
+
+async function copyDirectory(sourceDir, destDir) {
+  await fs.mkdir(destDir, { recursive: true });
+  const entries = await fs.readdir(sourceDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (shouldSkipEntry(entry.name)) {
+      continue;
+    }
+
+    const sourceEntryPath = path.join(sourceDir, entry.name);
+    const destEntryPath = path.join(destDir, entry.name);
+
+    if (entry.isSymbolicLink()) {
+      let linkTarget;
+      try {
+        linkTarget = await fs.readlink(sourceEntryPath);
+      } catch {
+        linkTarget = null;
+      }
+
+      if (linkTarget) {
+        const resolvedTarget = path.isAbsolute(linkTarget)
+          ? linkTarget
+          : path.resolve(sourceDir, linkTarget);
+
+        if (await fileExists(resolvedTarget)) {
+          const targetStats = await fs.stat(resolvedTarget);
+          if (targetStats.isDirectory()) {
+            await copyDirectory(resolvedTarget, destEntryPath);
+          } else {
+            await fs.copyFile(resolvedTarget, destEntryPath);
+          }
+          continue;
+        }
+
+        await fs.writeFile(destEntryPath, linkTarget);
+        continue;
+      }
+    }
+
+    if (entry.isDirectory()) {
+      await copyDirectory(sourceEntryPath, destEntryPath);
+      continue;
+    }
+
+    if (entry.isFile()) {
+      const stubTarget = await resolveLinkStub(sourceEntryPath);
+      if (stubTarget) {
+        const targetStats = await fs.stat(stubTarget);
+        if (targetStats.isDirectory()) {
+          await copyDirectory(stubTarget, destEntryPath);
+        } else {
+          await fs.copyFile(stubTarget, destEntryPath);
+        }
+        continue;
+      }
+
+      await fs.copyFile(sourceEntryPath, destEntryPath);
+    }
+  }
+}
+
 async function listSkills(source) {
   const baseDir = expandHome(source.path);
   const entries = await fs.readdir(baseDir, { withFileTypes: true });
   const skills = [];
 
   for (const entry of entries) {
-    if (entry.isSymbolicLink() || !entry.isDirectory()) {
+    const fullPath = path.join(baseDir, entry.name);
+
+    if (!(await isDirectoryEntry(entry, fullPath))) {
       continue;
     }
 
     if (entry.name === '.system' && source.includeDotSystem) {
-      const systemDir = path.join(baseDir, '.system');
+      const systemDir = fullPath;
       const systemEntries = await fs.readdir(systemDir, { withFileTypes: true });
       for (const systemEntry of systemEntries) {
-        if (systemEntry.isSymbolicLink() || !systemEntry.isDirectory()) {
+        const systemPath = path.join(systemDir, systemEntry.name);
+        if (!(await isDirectoryEntry(systemEntry, systemPath))) {
           continue;
         }
-        const fullPath = path.join(systemDir, systemEntry.name);
-        if (await hasSkillMd(fullPath)) {
+        if (await hasSkillMd(systemPath)) {
+          const realPath = await fs.realpath(systemPath).catch(() => systemPath);
           skills.push({
             name: systemEntry.name,
-            path: fullPath,
+            path: systemPath,
+            realPath,
             sourceId: source.id,
           });
         }
@@ -67,9 +196,9 @@ async function listSkills(source) {
       continue;
     }
 
-    const fullPath = path.join(baseDir, entry.name);
     if (await hasSkillMd(fullPath)) {
-      skills.push({ name: entry.name, path: fullPath, sourceId: source.id });
+      const realPath = await fs.realpath(fullPath).catch(() => fullPath);
+      skills.push({ name: entry.name, path: fullPath, realPath, sourceId: source.id });
     }
   }
 
@@ -94,7 +223,8 @@ async function resolveOverride(overrides, sources, skillName) {
     throw new Error(`Override path missing SKILL.md for ${skillName}: ${overridePath}`);
   }
 
-  return { name: skillName, path: overridePath, sourceId: source.id };
+  const realPath = await fs.realpath(overridePath).catch(() => overridePath);
+  return { name: skillName, path: overridePath, realPath, sourceId: source.id };
 }
 
 async function copySkill(skill, destinationRoot) {
@@ -109,7 +239,7 @@ async function copySkill(skill, destinationRoot) {
     if (destinationExists && overwrite) {
       await fs.rm(destinationPath, { recursive: true, force: true });
     }
-    await fs.cp(skill.path, destinationPath, { recursive: true });
+    await copyDirectory(skill.path, destinationPath);
   }
 
   return { status: 'copied', destinationPath };
@@ -133,9 +263,13 @@ async function main() {
     const skills = await listSkills(source);
     for (const skill of skills) {
       if (skillMap.has(skill.name)) {
+        const existing = skillMap.get(skill.name);
+        if (existing?.realPath === skill.realPath) {
+          continue;
+        }
         conflicts.push({
           name: skill.name,
-          existing: skillMap.get(skill.name),
+          existing,
           incoming: skill,
         });
         continue;
