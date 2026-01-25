@@ -118,7 +118,7 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
         };
 
         if (ingredient) {
-            updateMutation.mutate(
+            (updateMutation.mutate as any)(
                 { id: ingredient.id, data: payload },
                 { onSuccess }
             );

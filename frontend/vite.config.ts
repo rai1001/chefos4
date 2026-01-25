@@ -1,10 +1,11 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import compression from 'vite-plugin-compression';
 import path from 'path';
 
 export default defineConfig({
-    plugins: [react()],
+    plugins: [react(), compression()],
     test: {
         globals: true,
         environment: 'jsdom',

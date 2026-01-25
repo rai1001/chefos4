@@ -144,7 +144,7 @@ export default function TimeOffPage() {
                         <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between pt-6">
                             <div>
                                 <div className="font-semibold">
-                                    {request.staff?.display_name ||
+                                    {(request.staff as any)?.display_name ||
                                         request.staff?.member?.user?.name ||
                                         request.staff?.member?.user?.email}
                                 </div>

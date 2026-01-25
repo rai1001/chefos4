@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { createTestWrapper } from './helpers/renderWithProviders';
-import React from 'react';
 
 const toastMock = vi.hoisted(() => vi.fn());
 vi.mock('@/components/ui/use-toast', () => ({

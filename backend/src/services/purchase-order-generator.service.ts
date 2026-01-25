@@ -96,7 +96,7 @@ export class PurchaseOrderGeneratorService {
 
 
                 if (poError) {
-                    logger.error(`Error creating PO for supplier ${supplierId}:`, poError);
+                    logger.error(poError as any, `Error creating PO for supplier ${supplierId}:`);
                     continue;
                 }
 
@@ -117,7 +117,7 @@ export class PurchaseOrderGeneratorService {
 
 
                 if (itemsError) {
-                    logger.error(`Error inserting items for PO ${po.id}:`, itemsError);
+                    logger.error(itemsError as any, `Error inserting items for PO ${po.id}:`);
                     // Rollback
                     await supabase.from('purchase_orders').delete().eq('id', po.id);
                     continue;

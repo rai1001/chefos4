@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ReportGeneratorService } from '@/services/report-generator.service';
 import { logger } from '@/utils/logger';
+import { AppError } from '@/middleware/error.middleware';
 
 export class ReportsController {
     private reportService = new ReportGeneratorService();
@@ -17,7 +18,7 @@ export class ReportsController {
             const buffer = await this.reportService.generateInventoryExcel(organizationId);
 
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            res.setHeader('Content-Disposition', 'attachment; filename=inventario.xlsx');
+            res.setHeader('Content-Disposition', `attachment; filename=inventario-${new Date().toISOString().split('T')[0]}.xlsx`);
             res.send(buffer);
         } catch (error) {
             logger.error('Error exporting inventory:', error);
@@ -43,28 +44,53 @@ export class ReportsController {
         }
     }
 
-    async exportPurchaseOrdersPDF(req: Request, res: Response) {
+    async exportFoodCostPDF(req: Request, res: Response) {
         try {
-            const { event_id } = req.query;
-            // @ts-ignore - organizationIds comes from authMiddleware
+            // @ts-ignore
             const organizationId = req.user?.organizationIds[0];
+            const { start_date, end_date } = req.query;
 
-            if (!organizationId) {
-                return res.status(400).json({ error: 'No organization found' });
+            if (!start_date || !end_date) {
+                return res.status(400).json({ error: 'start_date and end_date required' });
             }
 
-            const buffer = await this.reportService.generatePurchaseOrdersPDF(
+            const buffer = await this.reportService.generateFoodCostPDF(
                 organizationId,
-                event_id ? String(event_id) : undefined
+                new Date(start_date as string),
+                new Date(end_date as string)
             );
 
-            const suffix = event_id ? `event-${event_id}` : 'all';
             res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename=ordenes-compra-${suffix}.pdf`);
+            res.setHeader('Content-Disposition', `attachment; filename=food-cost-${start_date}-${end_date}.pdf`);
             res.send(buffer);
         } catch (error) {
-            logger.error('Error exporting purchase orders PDF:', error);
-            res.status(500).json({ error: 'Internal server error' });
+            logger.error('Error exporting food cost PDF:', error);
+            res.status(500).json({ error: 'Failed to export report' });
+        }
+    }
+
+    async exportPurchaseOrdersExcel(req: Request, res: Response) {
+        try {
+            // @ts-ignore
+            const organizationId = req.user?.organizationIds[0];
+            const { start_date, end_date } = req.query;
+
+            if (!start_date || !end_date) {
+                return res.status(400).json({ error: 'start_date and end_date required' });
+            }
+
+            const buffer = await this.reportService.generatePurchaseOrdersExcel(
+                organizationId,
+                new Date(start_date as string),
+                new Date(end_date as string)
+            );
+
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename=ordenes-compra-${start_date}-${end_date}.xlsx`);
+            res.send(buffer);
+        } catch (error) {
+            logger.error('Error exporting purchase orders Excel:', error);
+            res.status(500).json({ error: 'Failed to export report' });
         }
     }
 }

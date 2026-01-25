@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, FileText, FileDown } from 'lucide-react';
+import { ExportButtons } from '@/components/reports/ExportButtons';
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 import { useEvents } from '@/hooks/useEvents';
 import { reportsService } from '@/services/reports.service';
@@ -39,6 +40,10 @@ const STATUS_COLORS: Record<string, string> = {
 export default function PurchaseOrders() {
     const [status, setStatus] = useState('DRAFT');
     const [selectedEventId, setSelectedEventId] = useState('none');
+    const [dateRange] = useState({
+        start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+    });
     const queryClient = useQueryClient();
     const { toast } = useToast();
 
@@ -80,13 +85,10 @@ export default function PurchaseOrders() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => reportsService.downloadPurchaseOrdersPDF()}
-                    >
-                        <FileDown className="mr-2 h-4 w-4" />
-                        Descargar PDF compras
-                    </Button>
+                    <ExportButtons
+                        reportType="purchase-orders"
+                        dateRange={dateRange}
+                    />
                     <Button className="btn-large">
                         <Plus className="mr-2 h-5 w-5" />
                         Nueva Orden

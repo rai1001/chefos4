@@ -155,14 +155,18 @@ describe('CSVImporterService', () => {
 
     it('adds errors when update throws', async () => {
         const fromSpy = vi.spyOn(supabase, 'from');
+        let ingredientCalls = 0;
         fromSpy.mockImplementation((table: string) => {
             if (table === 'suppliers') return createChain({ id: 's1' }) as any;
             if (table === 'units') return createChain({ id: 'u1' }) as any;
             if (table === 'ingredients') {
+                if (ingredientCalls === 0) {
+                    ingredientCalls++;
+                    return createChain({ id: 'i1' }) as any;
+                }
                 const chain = createChain({ id: 'i1' }) as any;
-                chain.update = vi.fn(() => {
-                    throw new Error('boom');
-                });
+                // Simulate Supabase returning an error object
+                chain.then = (resolve: any) => resolve({ data: null, error: new Error('boom') });
                 return chain;
             }
             return createChain({}) as any;

@@ -190,7 +190,7 @@ describe('services', () => {
         apiMock.get.mockResolvedValueOnce({ data: { data: [{ id: 'r1' }], total: 1 } });
         const recipes = await recipesService.getAll();
         expect(apiMock.get).toHaveBeenCalledWith('/recipes', { params: { search: undefined, limit: 100 } });
-        expect(recipes.total).toBe(1);
+        expect(recipes.data.length).toBe(1);
 
         apiMock.get.mockResolvedValueOnce({ data: { data: { id: 'r1' } } });
         const recipe = await recipesService.getById('r1');

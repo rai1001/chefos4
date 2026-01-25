@@ -5,6 +5,7 @@ import { logger } from '@/utils/logger';
 import { AppError } from '@/utils/errors';
 import multer from 'multer';
 import { CSVImporterService } from '@/services/csv-importer.service';
+import { ExcelTemplateService } from '@/services/excel-template.service';
 import * as XLSX from 'xlsx';
 
 
@@ -362,6 +363,30 @@ export class IngredientsController {
                 return;
             }
             res.status(500).json({ error: 'Failed to analyze CSV' });
+        }
+    }
+
+    /**
+     * Download Excel template for ingredient import
+     */
+    async downloadTemplate(req: AuthRequest, res: Response): Promise<void> {
+        try {
+            const templateService = new ExcelTemplateService();
+            const buffer = templateService.generateIngredientsTemplate();
+
+            res.setHeader(
+                'Content-Type',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            );
+            res.setHeader(
+                'Content-Disposition',
+                'attachment; filename="plantilla_ingredientes.xlsx"'
+            );
+
+            res.send(buffer);
+        } catch (error: any) {
+            logger.error('Error generating template:', error);
+            res.status(500).json({ error: 'Failed to generate template' });
         }
     }
 

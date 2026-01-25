@@ -44,7 +44,7 @@ export interface CreateEventDto {
     name: string;
     event_type: 'BANQUET' | 'A_LA_CARTE' | 'SPORTS_MULTI' | 'COFFEE' | 'BUFFET';
     date_start: string;
-    date_end: string;
+    date_end?: string;
     pax: number;
     menus?: { recipe_id: string; qty_forecast: number }[];
     direct_ingredients?: { ingredient_id: string; quantity: number; unit_id: string }[];

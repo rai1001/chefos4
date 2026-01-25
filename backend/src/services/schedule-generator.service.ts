@@ -141,7 +141,7 @@ export class ScheduleGeneratorService {
                     .filter((assignment: any) => assignment.locked)
                     .map((assignment: any) => assignment.staff_id)
             );
-            lockedAssignmentsByShift.set(shift.id, locked);
+            lockedAssignmentsByShift.set(shift.id, locked as Set<string>);
         });
 
         const staffAssignedDates = new Map<string, Set<string>>();
@@ -318,7 +318,7 @@ export class ScheduleGeneratorService {
 
         const overridesForDate = overrides.filter((rule) => rule.date === date);
         overridesForDate.forEach((override) => {
-            dayRuleMap.set(this.coverageKey(override.shift_code, override.station), override);
+            dayRuleMap.set(this.coverageKey(override.shift_code, override.station), override as any);
         });
 
         return Array.from(dayRuleMap.values());

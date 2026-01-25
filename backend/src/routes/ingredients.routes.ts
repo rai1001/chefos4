@@ -19,6 +19,6 @@ router.delete('/:id', controller.delete);
 
 router.post('/import/analyze', uploadMiddleware, controller.analyzeCSV);
 router.post('/import/execute', uploadMiddleware, controller.importCSV);
+router.get('/import/template', controller.downloadTemplate);
 
 export default router;
-

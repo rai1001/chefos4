@@ -18,11 +18,10 @@ describe('Auth API Integration Tests', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        process.env.JWT_SECRET = 'test-secret';
     });
 
     it('should register a new user', async () => {
-        // Mock 'users' check (existing user) -> null
-        // Mock 'users' creation
         const mockUser = {
             id: 'user-123',
             email: testUser.email,

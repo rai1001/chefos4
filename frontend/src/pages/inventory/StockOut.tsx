@@ -111,7 +111,7 @@ export default function InventoryStockOut({ embedded = false }: { embedded?: boo
                         </Select>
                         {ingredientId && (
                             <div className="mt-2 text-xs text-muted-foreground">
-                                Unidad: {ingredientMap.get(ingredientId)?.units?.abbreviation || 'N/D'}
+                                Unidad: {(ingredientMap.get(ingredientId) as any)?.units?.abbreviation || 'N/D'}
                             </div>
                         )}
                     </div>

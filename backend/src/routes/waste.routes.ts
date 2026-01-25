@@ -3,13 +3,11 @@ import { WasteController } from '@/controllers/waste.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 const router = Router();
-const controller = new WasteController();
+const wasteController = new WasteController();
 
 router.use(authMiddleware);
 
-router.get('/causes', controller.getCauses);
-router.post('/causes', controller.createCause);
-router.post('/log', controller.createWasteEntry);
-router.get('/stats', controller.getStats);
+router.post('/', wasteController.recordWaste);
+router.get('/analysis', wasteController.getAnalysis);
 
 export default router;

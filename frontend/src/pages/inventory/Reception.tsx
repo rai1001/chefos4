@@ -21,7 +21,7 @@ export default function InventoryReception({ embedded = false }: { embedded?: bo
 
     const ingredients = ingredientsData?.data || [];
     const ingredientMap = useMemo(
-        () => new Map(ingredients.map((ing: any) => [ing.id, ing])),
+        () => new Map(ingredients.map((ing: any) => [ing.id, ing as any])),
         [ingredients]
     );
 
@@ -81,7 +81,7 @@ export default function InventoryReception({ embedded = false }: { embedded?: bo
                                                         id: item.id,
                                                         payload: {
                                                             ingredient_id: val,
-                                                            unit_id: selected?.unit_id,
+                                                            unit_id: (selected as any)?.unit_id || undefined,
                                                             status: 'LINKED',
                                                         },
                                                     });
@@ -130,11 +130,13 @@ export default function InventoryReception({ embedded = false }: { embedded?: bo
                                             >
                                                 {item.status === 'IGNORED' ? 'Reactivar' : 'Ignorar'}
                                             </Button>
-                                            {ingredient && (
-                                                <div className="col-span-6 text-xs text-muted-foreground">
-                                                    Unidad: {ingredient.units?.abbreviation || 'N/D'}
-                                                </div>
-                                            )}
+                                            <>
+                                                {ingredient && (
+                                                    <div className="col-span-6 text-xs text-muted-foreground">
+                                                        Unidad: {(ingredient as any)?.units?.abbreviation || 'N/D'}
+                                                    </div>
+                                                )}
+                                            </>
                                         </div>
                                     );
                                 })}

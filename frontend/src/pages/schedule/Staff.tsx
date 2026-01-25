@@ -115,8 +115,8 @@ export default function StaffPage() {
         <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                <h1 className="text-3xl font-bold">Equipo</h1>
-                <p className="text-muted-foreground">Gestiona perfiles, contratos y habilidades.</p>
+                    <h1 className="text-3xl font-bold">Equipo</h1>
+                    <p className="text-muted-foreground">Gestiona perfiles, contratos y habilidades.</p>
                 </div>
                 <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
                     <DialogTrigger asChild>
@@ -143,10 +143,10 @@ export default function StaffPage() {
                                         <SelectValue placeholder="Selecciona un rol" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                    <SelectItem value="COOK">Cocinero</SelectItem>
-                                    <SelectItem value="SERVER">Sala / Camarero</SelectItem>
-                                    <SelectItem value="AREA_MANAGER">Responsable</SelectItem>
-                                    <SelectItem value="ORG_ADMIN">Administrador</SelectItem>
+                                        <SelectItem value="COOK">Cocinero</SelectItem>
+                                        <SelectItem value="SERVER">Sala / Camarero</SelectItem>
+                                        <SelectItem value="AREA_MANAGER">Responsable</SelectItem>
+                                        <SelectItem value="ORG_ADMIN">Administrador</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -254,7 +254,7 @@ export default function StaffPage() {
                     <StaffCard
                         key={item.id}
                         staff={item}
-                        onUpdate={updateMutation}
+                        onUpdate={updateMutation as any}
                     />
                 ))}
                 {staff.length === 0 && (

@@ -2,6 +2,14 @@ import csv from 'csv-parser';
 import { Readable } from 'stream';
 import { supabase } from '@/config/supabase';
 import { logger } from '@/utils/logger';
+import {
+    ValidationError,
+    validateFile,
+    validateHeaders,
+    sanitizeCSVValue,
+    parseFloatSafe,
+    createValidationError,
+} from '@/utils/csv-validator';
 
 
 interface CSVRow {
@@ -86,25 +94,47 @@ export class CSVImporterService {
      */
     async analyzeCSV(
         fileBuffer: Buffer,
-        organizationId: string
+        organizationId: string,
+        filename: string = 'upload.csv'
     ): Promise<{
         total_rows: number;
         unknown_suppliers: string[];
         preview: CSVRow[];
+        validation_errors: string[];
     }> {
+        // 1. Validate file
+        const fileValidation = validateFile(fileBuffer, filename);
+        if (!fileValidation.valid) {
+            throw new Error(`File validation failed: ${fileValidation.errors.join(', ')}`);
+        }
         const rows: CSVRow[] = [];
         const unknownSuppliers = new Set<string>();
-
+        let headers: string[] = [];
+        let firstRow = true;
 
         await new Promise((resolve, reject) => {
             Readable.from(fileBuffer)
                 .pipe(csv())
+                .on('headers', (hdrs: string[]) => {
+                    headers = hdrs;
+                })
                 .on('data', (row: any) => {
                     rows.push(mapRow(row));
                 })
                 .on('end', resolve)
                 .on('error', reject);
         });
+
+        // 2. Validate required columns
+        const requiredColumns = ['nombre_articulo', 'proveedor', 'precio', 'unidad'];
+        const headerValidation = validateHeaders(headers, requiredColumns);
+
+        if (!headerValidation.valid) {
+            throw new Error(
+                `Missing required columns: ${headerValidation.missing.join(', ')}. ` +
+                `Found: ${headerValidation.found.join(', ')}`
+            );
+        }
 
 
         // Obtener proveedores existentes
@@ -131,11 +161,11 @@ export class CSVImporterService {
 
         logger.info(`CSV Analysis: ${rows.length} rows, ${unknownSuppliers.size} unknown suppliers`);
 
-
         return {
             total_rows: rows.length,
             unknown_suppliers: Array.from(unknownSuppliers),
-            preview: rows.slice(0, 5), // Primeras 5 filas
+            preview: rows.slice(0, 5),
+            validation_errors: [],
         };
     }
 
@@ -146,13 +176,19 @@ export class CSVImporterService {
     async executeImport(
         fileBuffer: Buffer,
         organizationId: string,
-        resolutions: ConflictResolution[]
+        resolutions: ConflictResolution[],
+        filename: string = 'upload.csv'
     ): Promise<{
         imported: number;
         updated: number;
         created_suppliers: number;
-        errors: string[];
+        errors: ValidationError[];
     }> {
+        // 1. Validate file
+        const fileValidation = validateFile(fileBuffer, filename);
+        if (!fileValidation.valid) {
+            throw new Error(`File validation failed: ${fileValidation.errors.join(', ')}`);
+        }
         const rows: CSVRow[] = [];
 
 
@@ -170,7 +206,11 @@ export class CSVImporterService {
         let imported = 0;
         let updated = 0;
         let createdSuppliers = 0;
-        const errors: string[] = [];
+        const errors: ValidationError[] = [];
+
+        // Accumulate valid ingredients for bulk insert
+        const ingredientsToCreate: any[] = [];
+        const ingredientsToUpdate: Array<{ id: string; cost_price: number }> = [];
 
 
         // Crear mapa de resoluciones
@@ -179,10 +219,47 @@ export class CSVImporterService {
         );
 
 
-        for (const row of rows) {
+        // Process each row with validation
+        for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+            const row = rows[rowIndex];
+            const rowNumber = rowIndex + 2; // +2 because: 0-indexed + 1 header row + 1 for 1-based
+
             try {
-                if (!row.nombre_articulo || !row.proveedor || !row.unidad || !row.precio) {
-                    errors.push(`Fila incompleta: ${JSON.stringify(row)}`);
+                // Validate required fields
+                if (!row.nombre_articulo) {
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'REQUIRED',
+                        'Missing required field',
+                        'nombre_articulo'
+                    ));
+                    continue;
+                }
+                if (!row.proveedor) {
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'REQUIRED',
+                        'Missing required field',
+                        'proveedor'
+                    ));
+                    continue;
+                }
+                if (!row.unidad) {
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'REQUIRED',
+                        'Missing required field',
+                        'unidad'
+                    ));
+                    continue;
+                }
+                if (!row.precio) {
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'REQUIRED',
+                        'Missing required field',
+                        'precio'
+                    ));
                     continue;
                 }
 
@@ -195,7 +272,13 @@ export class CSVImporterService {
 
 
                 if (!supplierResult) {
-                    errors.push(`Proveedor no resuelto: ${row.proveedor}`);
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'REFERENCE',
+                        `Supplier not resolved: ${row.proveedor}`,
+                        'proveedor',
+                        row.proveedor
+                    ));
                     continue;
                 }
 
@@ -212,7 +295,13 @@ export class CSVImporterService {
 
 
                 if (!unitId) {
-                    errors.push(`Unidad desconocida: ${row.unidad}`);
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'REFERENCE',
+                        `Unknown unit: ${row.unidad}`,
+                        'unidad',
+                        row.unidad
+                    ));
                     continue;
                 }
 
@@ -226,46 +315,102 @@ export class CSVImporterService {
                 }
 
 
-                // 4. Upsert ingrediente
-                const precio = parseFloat(row.precio.replace(',', '.'));
+                // 4. Parse and validate price
+                const precio = parseFloatSafe(row.precio);
+                if (precio === null || precio < 0) {
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'FORMAT',
+                        `Invalid price format: ${row.precio}`,
+                        'precio',
+                        row.precio
+                    ));
+                    continue;
+                }
+
+                // Sanitize values to prevent CSV injection
+                const sanitizedName = sanitizeCSVValue(row.nombre_articulo.trim());
 
 
+                // 5. Check if ingredient exists (for bulk operations)
                 const { data: existing } = await supabase
                     .from('ingredients')
                     .select('id')
-                    .eq('name', row.nombre_articulo.trim())
+                    .eq('name', sanitizedName)
                     .eq('supplier_id', supplierId)
                     .eq('organization_id', organizationId)
                     .is('deleted_at', null)
                     .single();
 
-
                 if (existing) {
-                    // ACTUALIZAR
-                    await supabase
-                        .from('ingredients')
-                        .update({ cost_price: precio })
-                        .eq('id', existing.id);
-
-
-                    updated++;
+                    // Queue for bulk update
+                    ingredientsToUpdate.push({
+                        id: existing.id,
+                        cost_price: precio,
+                    });
                 } else {
-                    // CREAR
-                    await supabase.from('ingredients').insert({
+                    // Queue for bulk insert
+                    ingredientsToCreate.push({
                         organization_id: organizationId,
-                        name: row.nombre_articulo.trim(),
+                        name: sanitizedName,
                         supplier_id: supplierId,
                         family_id: familyId,
                         cost_price: precio,
                         unit_id: unitId,
                     });
-
-
-                    imported++;
                 }
             } catch (error: any) {
-                errors.push(`Error en fila "${row.nombre_articulo}": ${error.message}`);
+                errors.push(createValidationError(
+                    rowNumber,
+                    'VALIDATION',
+                    `Unexpected error: ${error.message}`,
+                    undefined,
+                    row.nombre_articulo
+                ));
             }
+        }
+
+        // ========================================
+        // BULK OPERATIONS (Much faster!)
+        // ========================================
+
+        // Bulk insert new ingredients
+        if (ingredientsToCreate.length > 0) {
+            const { error: insertError } = await supabase
+                .from('ingredients')
+                .insert(ingredientsToCreate);
+
+            if (insertError) {
+                logger.error(insertError as any, 'Bulk insert failed:');
+                throw new Error('Bulk insert failed');
+            }
+            imported = ingredientsToCreate.length;
+            logger.info(`Bulk inserted ${imported} ingredients`);
+        }
+
+        // Bulk update existing ingredients (one by one for now - Supabase doesn't support bulk update easily)
+        for (const item of ingredientsToUpdate) {
+            try {
+                const { error: updateError } = await supabase
+                    .from('ingredients')
+                    .update({ cost_price: item.cost_price })
+                    .eq('id', item.id);
+
+                if (updateError) throw updateError;
+            } catch (error: any) {
+                logger.error(`Error updating ingredient ${item.id}:`, error);
+                errors.push(createValidationError(
+                    0,
+                    'UPDATE',
+                    `Failed to update ingredient: ${error.message || 'Unknown error'}`,
+                    undefined,
+                    item.id
+                ));
+            }
+        }
+        updated = ingredientsToUpdate.length;
+        if (updated > 0) {
+            logger.info(`Updated ${updated} ingredients`);
         }
 
 
@@ -335,10 +480,10 @@ export class CSVImporterService {
 
             return linkedSupplier
                 ? {
-                      id: linkedSupplier.id,
-                      created: false,
-                      default_family_id: linkedSupplier.default_family_id ?? null,
-                  }
+                    id: linkedSupplier.id,
+                    created: false,
+                    default_family_id: linkedSupplier.default_family_id ?? null,
+                }
                 : null;
         }
 
@@ -355,17 +500,17 @@ export class CSVImporterService {
             .single();
 
         if (error) {
-            logger.error(`Error creating supplier ${name}:`, error);
+            logger.error(error as any, `Error creating supplier ${name}:`);
             return null;
         }
 
 
         return newSupplier
             ? {
-                  id: newSupplier.id,
-                  created: true,
-                  default_family_id: newSupplier.default_family_id ?? null,
-              }
+                id: newSupplier.id,
+                created: true,
+                default_family_id: newSupplier.default_family_id ?? null,
+            }
             : null;
     }
 

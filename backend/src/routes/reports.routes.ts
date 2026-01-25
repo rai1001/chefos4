@@ -7,8 +7,9 @@ const reportsController = new ReportsController();
 
 router.use(authMiddleware);
 
-router.get('/inventory', (req, res) => reportsController.exportInventory(req, res));
-router.get('/production', (req, res) => reportsController.exportProduction(req, res));
-router.get('/purchase-orders/pdf', (req, res) => reportsController.exportPurchaseOrdersPDF(req, res));
+router.get('/inventory/excel', (req, res) => reportsController.exportInventory(req, res));
+router.get('/production/excel', (req, res) => reportsController.exportProduction(req, res));
+router.get('/food-cost/pdf', (req, res) => reportsController.exportFoodCostPDF(req, res));
+router.get('/purchase-orders/excel', (req, res) => reportsController.exportPurchaseOrdersExcel(req, res));
 
 export default router;

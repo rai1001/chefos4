@@ -50,7 +50,7 @@ export class AuthController {
                 .single();
 
             if (uError || !createdUser) {
-                logger.error('Error creating user:', uError);
+                logger.error(uError as any, 'Error creating user:');
                 throw new AppError(500, 'Failed to create user');
             }
 
@@ -65,7 +65,7 @@ export class AuthController {
                 .single();
 
             if (orgError || !newOrg) {
-                logger.error('Error creating organization:', orgError);
+                logger.error(orgError as any, 'Error creating organization:');
                 // Rollback: eliminar usuario
                 await supabase.from('users').delete().eq('id', createdUser.id);
                 throw new AppError(500, 'Failed to create organization');
@@ -81,15 +81,19 @@ export class AuthController {
                 });
 
             if (memberError) {
-                logger.error('Error creating membership:', memberError);
+                logger.error(memberError as any, 'Error creating membership:');
                 throw new AppError(500, 'Failed to link user to organization');
             }
 
             // 6. Generar JWT
-            const token = jwt.sign(
+            if (!process.env.JWT_SECRET) {
+                throw new Error('JWT_SECRET must be set in environment variables');
+            }
+
+            const token = (jwt.sign as any)(
                 { userId: createdUser.id, email: createdUser.email },
-                process.env.JWT_SECRET!,
-                { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+                process.env.JWT_SECRET,
+                { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
             );
 
             res.status(201).json({
@@ -149,10 +153,14 @@ export class AuthController {
                 .eq('id', user.id);
 
             // 4. Generar JWT
-            const token = jwt.sign(
+            if (!process.env.JWT_SECRET) {
+                throw new Error('JWT_SECRET must be set in environment variables');
+            }
+
+            const token = (jwt.sign as any)(
                 { userId: user.id, email: user.email },
-                process.env.JWT_SECRET!,
-                { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+                process.env.JWT_SECRET,
+                { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
             );
 
             res.json({
