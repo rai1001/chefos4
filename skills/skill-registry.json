@@ -1,0 +1,23 @@
+{
+  "sources": [
+    {
+      "id": "agents",
+      "path": "~/.agents/skills"
+    },
+    {
+      "id": "codex",
+      "path": "~/.codex/skills",
+      "includeDotSystem": true
+    }
+  ],
+  "overrides": {
+    "skill-creator": {
+      "source": "codex",
+      "path": ".system/skill-creator"
+    }
+  },
+  "destinations": [
+    ".agent/skills",
+    "skills"
+  ]
+}
