@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -116,25 +117,25 @@ export function NotificationBell() {
                     ) : (
                         <div className="divide-y">
                             {notifications.map((n: any) => (
-                                <div
+                                <DropdownMenuItem
                                     key={n.id}
                                     className={cn(
-                                        "p-4 hover:bg-accent cursor-pointer transition-colors space-y-1 relative",
+                                        "p-4 cursor-pointer flex-col items-start space-y-1 relative",
                                         !n.is_read && "bg-primary/5"
                                     )}
-                                    onClick={() => handleNotificationClick(n)}
+                                    onSelect={() => handleNotificationClick(n)}
                                 >
                                     {!n.is_read && (
                                         <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full" />
                                     )}
-                                    <div className="flex justify-between items-start gap-2">
+                                    <div className="flex justify-between items-start gap-2 w-full">
                                         <p className="font-bold text-sm leading-tight">{n.title}</p>
                                         <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                                             {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
                                     <p className="text-sm text-muted-foreground line-clamp-2">{n.message}</p>
-                                </div>
+                                </DropdownMenuItem>
                             ))}
                         </div>
                     )}

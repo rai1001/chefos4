@@ -37,8 +37,8 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
     DropdownMenu: ({ children }: any) => <div>{children}</div>,
     DropdownMenuTrigger: ({ children }: any) => <div>{children}</div>,
     DropdownMenuContent: ({ children }: any) => <div data-testid="dropdown-content">{children}</div>,
-    DropdownMenuItem: ({ children, onClick }: any) => (
-        <div onClick={onClick} role="menuitem">{children}</div>
+    DropdownMenuItem: ({ children, onSelect, onClick }: any) => (
+        <div onClick={onSelect || onClick} role="menuitem">{children}</div>
     ),
     DropdownMenuLabel: ({ children }: any) => <div>{children}</div>,
     DropdownMenuSeparator: () => <hr />,
@@ -111,5 +111,28 @@ describe('NotificationBell Component', () => {
 
         expect(await screen.findByText('New Order')).toBeInTheDocument();
         expect(await screen.findByText('Stock Alert')).toBeInTheDocument();
+    });
+
+    it('marks notification as read when clicked', async () => {
+        const notifications = [
+            { id: '1', title: 'New Order', message: 'Order #123 arrived', is_read: false, created_at: new Date().toISOString() },
+        ];
+        vi.mocked(api.get).mockResolvedValue({ data: { data: notifications } });
+
+        render(
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <QueryClientProvider client={queryClient}>
+                    <NotificationBell />
+                </QueryClientProvider>
+            </BrowserRouter>
+        );
+
+        const bellButton = screen.getByLabelText(/abrir notificaciones/i);
+        fireEvent.click(bellButton);
+
+        const notificationItem = await screen.findByText('New Order');
+        fireEvent.click(notificationItem);
+
+        expect(api.patch).toHaveBeenCalledWith('/notifications/1/read');
     });
 });
