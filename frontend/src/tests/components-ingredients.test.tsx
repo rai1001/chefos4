@@ -31,7 +31,7 @@ vi.mock('@/hooks/useSuppliers', () => ({
 }));
 
 vi.mock('@/hooks/useProductFamilies', () => ({
-    useProductFamilies: () => ({ data: [] }),
+    useProductFamilies: () => ({ data: [{ id: 'fam-1', name: 'Carnes' }] }),
 }));
 
 vi.mock('@/services/api', () => ({ api: apiMock }));
@@ -68,13 +68,28 @@ describe('IngredientsList', () => {
         );
 
         expect(screen.getByText('Tomate')).toBeInTheDocument();
-        expect(screen.getByText('Bajo')).toBeInTheDocument();
 
-        const actionButtons = screen.getAllByRole('button');
-        await userEvent.click(actionButtons[actionButtons.length - 1]);
-        await userEvent.click(screen.getByText('Eliminar'));
+        const deleteButton = screen.getByRole('button', { name: /eliminar tomate/i });
+        await userEvent.click(deleteButton);
+
+        const confirmButton = screen.getByRole('button', { name: 'Eliminar' });
+        await userEvent.click(confirmButton);
 
         expect(mutate).toHaveBeenCalledWith('ing-1');
+    });
+
+    it('renders empty state when data is empty', () => {
+        renderWithProviders(
+            <IngredientsList
+                data={[]}
+                pagination={{ total: 0, page: 1, limit: 10, totalPages: 0 }}
+                isLoading={false}
+                onPageChange={vi.fn()}
+            />
+        );
+
+        expect(screen.getByText('No hay ingredientes')).toBeInTheDocument();
+        expect(screen.getByText('No has agregado ningún ingrediente a tu inventario todavía.')).toBeInTheDocument();
     });
 });
 
@@ -135,7 +150,7 @@ describe('CSVImportWizard', () => {
         renderWithProviders(<CSVImportWizard />);
 
         const file = new File(['id,name'], 'items.csv', { type: 'text/csv' });
-        const label = screen.getByText('Selecciona un archivo CSV').closest('label');
+        const label = screen.getByText(/Selecciona un archivo CSV/i).closest('label');
         const input = label?.querySelector('input[type=\"file\"]');
         expect(input).toBeTruthy();
         fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });

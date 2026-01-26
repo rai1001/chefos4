@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit, Trash2, Package } from 'lucide-react';
+import { Edit, Trash2, Package, Loader2 } from 'lucide-react';
 import { Ingredient } from '@/services/ingredients.service';
 import { useDeleteIngredient } from '@/hooks/useIngredients';
 import { Button } from '@/components/ui/button';
@@ -58,9 +58,27 @@ export function IngredientsList({
 
 
     if (isLoading) {
-        return <div>Cargando...</div>;
+        return (
+            <div className="flex justify-center p-8 text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Cargando ingredientes...
+            </div>
+        );
     }
 
+    if (!data.length) {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-md border bg-card p-8 text-center animate-in fade-in-50">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                    <Package className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold">No hay ingredientes</h3>
+                <p className="mb-4 mt-2 text-sm text-muted-foreground max-w-sm">
+                    No has agregado ningún ingrediente a tu inventario todavía.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -100,6 +118,8 @@ export function IngredientsList({
                                             size="sm"
                                             iconOnly
                                             onClick={() => onEdit?.(ingredient)}
+                                            aria-label={`Editar ${ingredient.name}`}
+                                            title="Editar ingrediente"
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Button>
@@ -107,6 +127,8 @@ export function IngredientsList({
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setDeleteId(ingredient.id)}
+                                            aria-label={`Eliminar ${ingredient.name}`}
+                                            title="Eliminar ingrediente"
                                         >
                                             <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
