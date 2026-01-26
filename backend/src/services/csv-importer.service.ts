@@ -6,9 +6,10 @@ import {
     ValidationError,
     validateFile,
     validateHeaders,
-    sanitizeCSVValue,
+    isCSVInjection,
     parseFloatSafe,
     createValidationError,
+    normalizeKey,
 } from '@/utils/csv-validator';
 
 
@@ -27,13 +28,6 @@ interface ConflictResolution {
     link_to_id?: string; // Si action = LINK
     default_family_id?: string | null;
 }
-
-const normalizeKey = (key: string): string =>
-    key
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]/g, '');
 
 const normalizeValue = (value: unknown): string => {
     if (value === null || value === undefined) return '';
@@ -328,15 +322,30 @@ export class CSVImporterService {
                     continue;
                 }
 
-                // Sanitize values to prevent CSV injection
-                const sanitizedName = sanitizeCSVValue(row.nombre_articulo.trim());
+                // Security check for CSV injection
+                // Must check trimmed values to prevent whitespace bypass (e.g. " =cmd")
+                if (
+                    isCSVInjection(row.nombre_articulo.trim()) ||
+                    isCSVInjection(row.proveedor.trim()) ||
+                    isCSVInjection(row.unidad.trim()) ||
+                    (row.familia && isCSVInjection(row.familia.trim()))
+                ) {
+                    errors.push(createValidationError(
+                        rowNumber,
+                        'SECURITY',
+                        'Potential CSV Injection detected',
+                        'multiple'
+                    ));
+                    continue;
+                }
 
+                const name = row.nombre_articulo.trim();
 
                 // 5. Check if ingredient exists (for bulk operations)
                 const { data: existing } = await supabase
                     .from('ingredients')
                     .select('id')
-                    .eq('name', sanitizedName)
+                    .eq('name', name)
                     .eq('supplier_id', supplierId)
                     .eq('organization_id', organizationId)
                     .is('deleted_at', null)
@@ -352,7 +361,7 @@ export class CSVImporterService {
                     // Queue for bulk insert
                     ingredientsToCreate.push({
                         organization_id: organizationId,
-                        name: sanitizedName,
+                        name: name,
                         supplier_id: supplierId,
                         family_id: familyId,
                         cost_price: precio,
