@@ -128,7 +128,50 @@ describe('CSVImporterService', () => {
     it('adds errors when row is incomplete', async () => {
         const service = new CSVImporterService();
         const result = await service.executeImport(csvBufferIncomplete, 'org-1', []);
-        expect(result.errors[0]).toContain('Fila incompleta');
+        expect(result.errors[0].message).toMatch(/Missing required field/);
+    });
+
+    it('detects and blocks CSV injection', async () => {
+        const maliciousBuffer = Buffer.from(
+            'nombre_articulo,proveedor,precio,unidad,familia\n=cmd|calc,+Malicious,10,@Unit,-Family'
+        );
+        const fromSpy = vi.spyOn(supabase, 'from');
+        fromSpy.mockImplementation((table: string) => {
+            if (table === 'suppliers') return createChain({ id: 's1' }) as any;
+            if (table === 'units') return createChain({ id: 'u1' }) as any;
+            if (table === 'product_families') return createChain({ id: 'f1' }) as any;
+            if (table === 'ingredients') return createChain(null) as any;
+            return createChain({}) as any;
+        });
+
+        const service = new CSVImporterService();
+        const result = await service.executeImport(maliciousBuffer, 'org-1', []);
+
+        // Should return errors and block import
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0].message).toContain('Potential CSV Injection detected');
+        expect(result.imported).toBe(0);
+        expect(result.updated).toBe(0);
+    });
+
+    it('detects and blocks CSV injection with leading space bypass', async () => {
+        const maliciousBuffer = Buffer.from(
+            'nombre_articulo,proveedor,precio,unidad,familia\n =cmd|calc, +Malicious,10, @Unit, -Family'
+        );
+        const fromSpy = vi.spyOn(supabase, 'from');
+        fromSpy.mockImplementation((table: string) => {
+             if (table === 'suppliers') return createChain({ id: 's1' }) as any;
+             if (table === 'units') return createChain({ id: 'u1' }) as any;
+             if (table === 'product_families') return createChain({ id: 'f1' }) as any;
+             if (table === 'ingredients') return createChain(null) as any;
+             return createChain({}) as any;
+        });
+
+        const service = new CSVImporterService();
+        const result = await service.executeImport(maliciousBuffer, 'org-1', []);
+
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.imported).toBe(0);
     });
 
     it('updates existing ingredient when found', async () => {
