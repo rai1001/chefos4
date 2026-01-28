@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, Edit2, Trash2, Mail, Phone } from 'lucide-react';
 import { useSuppliers } from '@/hooks/useSuppliers';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -15,7 +16,8 @@ export default function Suppliers() {
     const [search, setSearch] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | undefined>();
-    const { data: suppliers, isLoading, refetch } = useSuppliers(search);
+    const debouncedSearch = useDebounce(search, 300);
+    const { data: suppliers, isLoading, refetch } = useSuppliers(debouncedSearch);
     const { data: families } = useProductFamilies();
     const { toast } = useToast();
 
