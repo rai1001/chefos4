@@ -7,6 +7,10 @@ vi.mock('@/config/supabase');
 const createChain = (data: any, error: any = null) => ({
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
     then: (resolve: any) => resolve({ data, error }),
 });
 

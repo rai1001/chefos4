@@ -2,6 +2,7 @@ import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import { supabase } from '@/config/supabase';
 import { logger } from '@/utils/logger';
+import { sanitizeForExcel } from '@/utils/sanitizers';
 
 interface ReportConfig {
     title: string;
@@ -115,7 +116,7 @@ export class ReportGeneratorService {
     async generateInventoryExcel(organizationId: string): Promise<Buffer> {
         try {
             // 1. Obtener datos
-            const { data: ingredients } = await supabase
+            const { data: ingredients, error } = await supabase
                 .from('ingredients')
                 .select(`
           *,
@@ -126,6 +127,8 @@ export class ReportGeneratorService {
                 .eq('organization_id', organizationId)
                 .is('deleted_at', null)
                 .order('name');
+
+            if (error) throw error;
 
             // 2. Crear Excel
             const workbook = new ExcelJS.Workbook();
@@ -167,12 +170,12 @@ export class ReportGeneratorService {
                 else if (ing.stock_current > (ing.stock_min * 3)) status = 'ALTO';
 
                 const row = worksheet.addRow({
-                    name: ing.name,
-                    family: (ing.product_families as any)?.name || '-',
-                    supplier: (ing.suppliers as any)?.name || '-',
+                    name: sanitizeForExcel(ing.name),
+                    family: sanitizeForExcel((ing.product_families as any)?.name || '-'),
+                    supplier: sanitizeForExcel((ing.suppliers as any)?.name || '-'),
                     stock_current: ing.stock_current || 0,
                     stock_min: ing.stock_min || 0,
-                    unit: (ing.units as any)?.abbreviation || '',
+                    unit: sanitizeForExcel((ing.units as any)?.abbreviation || ''),
                     cost_price: ing.cost_price || 0,
                     stock_value: stockValue,
                     status: status,
@@ -244,7 +247,7 @@ export class ReportGeneratorService {
         endDate: Date
     ): Promise<Buffer> {
         try {
-            const { data: pos } = await supabase
+            const { data: pos, error } = await supabase
                 .from('purchase_orders')
                 .select(`
           *,
@@ -260,6 +263,8 @@ export class ReportGeneratorService {
                 .gte('order_date', startDate.toISOString())
                 .lte('order_date', endDate.toISOString())
                 .order('order_date', { ascending: false });
+
+            if (error) throw error;
 
             const workbook = new ExcelJS.Workbook();
 
@@ -280,8 +285,8 @@ export class ReportGeneratorService {
             pos?.forEach((po) => {
                 summarySheet.addRow({
                     id: po.id.slice(0, 8),
-                    supplier: (po.supplier as any)?.name || '-',
-                    event: (po.event as any)?.name || '-',
+                    supplier: sanitizeForExcel((po.supplier as any)?.name || '-'),
+                    event: sanitizeForExcel((po.event as any)?.name || '-'),
                     order_date: new Date(po.order_date),
                     delivery_est: po.delivery_date_estimated
                         ? new Date(po.delivery_date_estimated)
@@ -314,11 +319,11 @@ export class ReportGeneratorService {
                 (po.items as any)?.forEach((item: any) => {
                     detailSheet.addRow({
                         po_id: po.id.slice(0, 8),
-                        supplier: (po.supplier as any)?.name || '-',
-                        ingredient: (item.ingredient as any)?.name || '-',
+                        supplier: sanitizeForExcel((po.supplier as any)?.name || '-'),
+                        ingredient: sanitizeForExcel((item.ingredient as any)?.name || '-'),
                         qty_ordered: item.quantity_ordered,
                         qty_received: item.quantity_received || 0,
-                        unit: (item.unit as any)?.abbreviation || '',
+                        unit: sanitizeForExcel((item.unit as any)?.abbreviation || ''),
                         unit_price: item.unit_price || 0,
                         line_total: item.total_price || 0,
                     });
@@ -373,13 +378,13 @@ export class ReportGeneratorService {
 
             (tasks || []).forEach(task => {
                 const row = worksheet.addRow({
-                    title: task.title,
+                    title: sanitizeForExcel(task.title),
                     status: task.status,
                     priority: task.priority,
                     start: new Date(task.scheduled_start).toLocaleString(),
                     end: new Date(task.scheduled_end).toLocaleString(),
                     duration: task.estimated_duration_minutes,
-                    recipe: (task.recipe as any)?.name || 'N/A'
+                    recipe: sanitizeForExcel((task.recipe as any)?.name || 'N/A')
                 });
 
                 // Status coloring
