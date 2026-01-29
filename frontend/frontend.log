@@ -1,0 +1,11 @@
+
+> culinaryos-frontend@1.0.0 dev /app/frontend
+> vite
+
+
+  VITE v5.4.21  ready in 301 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+10:00:43 AM [vite] hmr update /src/components/reports/ExportButtons.tsx, /src/styles/globals.css
+10:00:47 AM [vite] hmr update /src/components/waste/RecordWasteForm.tsx, /src/styles/globals.css
