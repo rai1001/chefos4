@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { inventoryService, InventoryStockItem } from '@/services/inventory.service';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/utils';
+import { Search, X, PackageOpen } from 'lucide-react';
 
 export default function InventoryStock({ embedded = false }: { embedded?: boolean }) {
     const [search, setSearch] = useState('');
@@ -34,12 +36,26 @@ export default function InventoryStock({ embedded = false }: { embedded?: boolea
                     <CardTitle>Filtros</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Input
-                        placeholder="Buscar ingrediente..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="max-w-md"
-                    />
+                    <div className="relative max-w-md">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar ingrediente..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-9 pr-9"
+                        />
+                        {search && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1 h-8 w-8 text-muted-foreground hover:text-foreground"
+                                onClick={() => setSearch('')}
+                                aria-label="Limpiar busqueda"
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
 
@@ -61,7 +77,25 @@ export default function InventoryStock({ embedded = false }: { embedded?: boolea
                         )}
                         {!isLoading && filtered.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4}>No hay stock disponible.</TableCell>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                                        <PackageOpen className="h-8 w-8 opacity-50" />
+                                        <p>
+                                            {search
+                                                ? 'No se encontraron ingredientes.'
+                                                : 'No hay stock disponible.'}
+                                        </p>
+                                        {search && (
+                                            <Button
+                                                variant="link"
+                                                onClick={() => setSearch('')}
+                                                className="h-auto p-0"
+                                            >
+                                                Limpiar filtros
+                                            </Button>
+                                        )}
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         )}
                         {!isLoading && filtered.map((item: InventoryStockItem) => (
