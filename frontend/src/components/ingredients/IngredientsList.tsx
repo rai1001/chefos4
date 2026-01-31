@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Edit, Trash2, Package } from 'lucide-react';
+import { Edit, Trash2, Package, PackageOpen } from 'lucide-react';
 import { Ingredient } from '@/services/ingredients.service';
 import { useDeleteIngredient } from '@/hooks/useIngredients';
 import { Button } from '@/components/ui/button';
@@ -61,6 +61,19 @@ export function IngredientsList({
         return <div>Cargando...</div>;
     }
 
+    if (data.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md bg-card">
+                <div className="bg-muted p-4 rounded-full mb-4">
+                    <PackageOpen className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-lg">No hay ingredientes registrados</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                    Comienza agregando ingredientes manualmente o importa una lista desde CSV.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -100,6 +113,7 @@ export function IngredientsList({
                                             size="sm"
                                             iconOnly
                                             onClick={() => onEdit?.(ingredient)}
+                                            aria-label={`Editar ${ingredient.name}`}
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Button>
@@ -107,6 +121,7 @@ export function IngredientsList({
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setDeleteId(ingredient.id)}
+                                            aria-label={`Eliminar ${ingredient.name}`}
                                         >
                                             <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
