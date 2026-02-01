@@ -101,6 +101,7 @@ export default function Ingredients() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-10"
+                        aria-label="Buscar ingredientes"
                     />
                 </div>
                 {/* TODO: Filtros por familia y proveedor */}

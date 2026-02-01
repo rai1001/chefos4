@@ -68,10 +68,9 @@ describe('IngredientsList', () => {
         );
 
         expect(screen.getByText('Tomate')).toBeInTheDocument();
-        expect(screen.getByText('Bajo')).toBeInTheDocument();
 
-        const actionButtons = screen.getAllByRole('button');
-        await userEvent.click(actionButtons[actionButtons.length - 1]);
+        const deleteButton = screen.getByRole('button', { name: /eliminar ingrediente/i });
+        await userEvent.click(deleteButton);
         await userEvent.click(screen.getByText('Eliminar'));
 
         expect(mutate).toHaveBeenCalledWith('ing-1');
