@@ -1,0 +1,3 @@
+## 2024-05-22 - Frontend Code Splitting Implementation
+**Learning:** The project memory stated that code splitting was already implemented, but direct code inspection of `App.tsx` revealed static imports. This highlights that architectural memories can drift from the codebase state. Implementing `React.lazy` requires ensuring `Suspense` boundaries are correctly placed and that tests (like `App.test.tsx`) are updated to handle async rendering using `waitFor`.
+**Action:** Always verify architectural claims in memory against the actual code before assuming optimization status. When adding lazy loading, ensure smoke tests for the main App component are robust enough to handle the suspense state.
