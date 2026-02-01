@@ -31,7 +31,7 @@ vi.mock('@/hooks/useSuppliers', () => ({
 }));
 
 vi.mock('@/hooks/useProductFamilies', () => ({
-    useProductFamilies: () => ({ data: [] }),
+    useProductFamilies: () => ({ data: [{ id: 'fam-1', name: 'Carnes' }] }),
 }));
 
 vi.mock('@/services/api', () => ({ api: apiMock }));
@@ -135,7 +135,7 @@ describe('CSVImportWizard', () => {
         renderWithProviders(<CSVImportWizard />);
 
         const file = new File(['id,name'], 'items.csv', { type: 'text/csv' });
-        const label = screen.getByText('Selecciona un archivo CSV').closest('label');
+        const label = screen.getByText('Selecciona un archivo CSV o Excel').closest('label');
         const input = label?.querySelector('input[type=\"file\"]');
         expect(input).toBeTruthy();
         fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
