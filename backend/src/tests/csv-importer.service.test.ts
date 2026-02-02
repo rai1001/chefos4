@@ -128,7 +128,7 @@ describe('CSVImporterService', () => {
     it('adds errors when row is incomplete', async () => {
         const service = new CSVImporterService();
         const result = await service.executeImport(csvBufferIncomplete, 'org-1', []);
-        expect(result.errors[0]).toContain('Fila incompleta');
+        expect(result.errors[0].message).toContain('Missing required field');
     });
 
     it('updates existing ingredient when found', async () => {
