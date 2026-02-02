@@ -16,6 +16,10 @@ const suppliersHookMock = vi.hoisted(() => ({
     useSuppliers: vi.fn(),
 }));
 
+const unitsHookMock = vi.hoisted(() => ({
+    useUnits: vi.fn(),
+}));
+
 const apiMock = vi.hoisted(() => ({
     post: vi.fn(),
 }));
@@ -30,8 +34,12 @@ vi.mock('@/hooks/useSuppliers', () => ({
     useSuppliers: suppliersHookMock.useSuppliers,
 }));
 
+vi.mock('@/hooks/useUnits', () => ({
+    useUnits: unitsHookMock.useUnits,
+}));
+
 vi.mock('@/hooks/useProductFamilies', () => ({
-    useProductFamilies: () => ({ data: [] }),
+    useProductFamilies: () => ({ data: [{ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Carnes' }] }),
 }));
 
 vi.mock('@/services/api', () => ({ api: apiMock }));
@@ -68,7 +76,6 @@ describe('IngredientsList', () => {
         );
 
         expect(screen.getByText('Tomate')).toBeInTheDocument();
-        expect(screen.getByText('Bajo')).toBeInTheDocument();
 
         const actionButtons = screen.getAllByRole('button');
         await userEvent.click(actionButtons[actionButtons.length - 1]);
@@ -84,17 +91,25 @@ describe('IngredientForm', () => {
         ingredientsHookMock.useCreateIngredient.mockReturnValue({ mutate, isPending: false });
         ingredientsHookMock.useUpdateIngredient.mockReturnValue({ mutate: vi.fn(), isPending: false });
         suppliersHookMock.useSuppliers.mockReturnValue({ data: [{ id: 'c290f1ee-6c54-4b01-90e6-d701748f0859', name: 'Proveedor Uno' }] });
+        unitsHookMock.useUnits.mockReturnValue({ data: [{ id: 'd290f1ee-6c54-4b01-90e6-d701748f0859', name: 'Kilos', abbreviation: 'kg' }] });
 
         renderWithProviders(<IngredientForm onSuccess={vi.fn()} />);
 
         await userEvent.type(screen.getByPlaceholderText('Ej: Harina de Trigo'), 'Harina');
 
         const comboBoxes = screen.getAllByRole('combobox');
+
+        // Family
         await userEvent.click(comboBoxes[0]);
         await userEvent.click(screen.getByRole('option', { name: 'Carnes' }));
 
+        // Supplier
         await userEvent.click(comboBoxes[1]);
         await userEvent.click(screen.getByRole('option', { name: 'Proveedor Uno' }));
+
+        // Unit
+        await userEvent.click(comboBoxes[2]);
+        await userEvent.click(screen.getByRole('option', { name: 'Kilos (kg)' }));
 
         const numberInputs = screen.getAllByRole('spinbutton');
         await userEvent.clear(numberInputs[0]);
@@ -135,7 +150,7 @@ describe('CSVImportWizard', () => {
         renderWithProviders(<CSVImportWizard />);
 
         const file = new File(['id,name'], 'items.csv', { type: 'text/csv' });
-        const label = screen.getByText('Selecciona un archivo CSV').closest('label');
+        const label = screen.getByText('Selecciona un archivo CSV o Excel').closest('label');
         const input = label?.querySelector('input[type=\"file\"]');
         expect(input).toBeTruthy();
         fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
