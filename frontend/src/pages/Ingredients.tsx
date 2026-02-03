@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, Upload } from 'lucide-react';
 import { useIngredients } from '@/hooks/useIngredients';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IngredientsList } from '@/components/ingredients/IngredientsList';
@@ -18,13 +19,15 @@ import { Ingredient } from '@/services/ingredients.service';
 
 export default function Ingredients() {
     const [search, setSearch] = useState('');
+    // ⚡ Bolt: Debounce search to avoid API calls on every keystroke
+    const debouncedSearch = useDebounce(search, 500);
     const [page, setPage] = useState(1);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
 
 
-    const { data, isLoading } = useIngredients({ page, limit: 20, search });
+    const { data, isLoading } = useIngredients({ page, limit: 20, search: debouncedSearch });
 
     return (
         <div className="space-y-6">

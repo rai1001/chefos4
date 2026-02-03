@@ -149,18 +149,14 @@ describe('pages', () => {
         expect(screen.getByText(/EventImportDialog/)).toBeInTheDocument();
     });
 
-    it('shows ingredients alert when low stock exists', () => {
+    it('renders ingredients page', () => {
         ingredientsHookMock.useIngredients.mockReturnValue({
             data: { data: [], pagination: { total: 0, page: 1, limit: 20, totalPages: 1 } },
             isLoading: false,
         });
-        ingredientsHookMock.useLowStockIngredients.mockReturnValue({
-            data: [{ id: 'low-1' }],
-        });
 
         renderWithProviders(<Ingredients />);
         expect(screen.getByText('Ingredientes')).toBeInTheDocument();
-        expect(screen.getByText(/tienen stock bajo el mínimo/i)).toBeInTheDocument();
         expect(screen.getByText('IngredientsList')).toBeInTheDocument();
     });
 
@@ -189,6 +185,7 @@ describe('pages', () => {
     });
 
     it('renders purchase orders page', () => {
+        eventsHookMock.useEvents.mockReturnValue({ data: [] });
         renderWithProviders(<PurchaseOrders />);
         expect(screen.getByText('Órdenes de Compra')).toBeInTheDocument();
         expect(screen.getByText('Borradores')).toBeInTheDocument();

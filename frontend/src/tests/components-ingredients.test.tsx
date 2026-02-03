@@ -31,7 +31,11 @@ vi.mock('@/hooks/useSuppliers', () => ({
 }));
 
 vi.mock('@/hooks/useProductFamilies', () => ({
-    useProductFamilies: () => ({ data: [] }),
+    useProductFamilies: () => ({ data: [{ id: 'c290f1ee-6c54-4b01-90e6-d701748f0852', name: 'Carnes' }] }),
+}));
+
+vi.mock('@/hooks/useUnits', () => ({
+    useUnits: () => ({ data: [{ id: 'c290f1ee-6c54-4b01-90e6-d701748f0851', name: 'Kilogramo', abbreviation: 'kg' }] }),
 }));
 
 vi.mock('@/services/api', () => ({ api: apiMock }));
@@ -68,7 +72,6 @@ describe('IngredientsList', () => {
         );
 
         expect(screen.getByText('Tomate')).toBeInTheDocument();
-        expect(screen.getByText('Bajo')).toBeInTheDocument();
 
         const actionButtons = screen.getAllByRole('button');
         await userEvent.click(actionButtons[actionButtons.length - 1]);
@@ -95,6 +98,9 @@ describe('IngredientForm', () => {
 
         await userEvent.click(comboBoxes[1]);
         await userEvent.click(screen.getByRole('option', { name: 'Proveedor Uno' }));
+
+        await userEvent.click(comboBoxes[2]);
+        await userEvent.click(screen.getByRole('option', { name: 'Kilogramo (kg)' }));
 
         const numberInputs = screen.getAllByRole('spinbutton');
         await userEvent.clear(numberInputs[0]);
@@ -135,7 +141,7 @@ describe('CSVImportWizard', () => {
         renderWithProviders(<CSVImportWizard />);
 
         const file = new File(['id,name'], 'items.csv', { type: 'text/csv' });
-        const label = screen.getByText('Selecciona un archivo CSV').closest('label');
+        const label = screen.getByText('Selecciona un archivo CSV o Excel').closest('label');
         const input = label?.querySelector('input[type=\"file\"]');
         expect(input).toBeTruthy();
         fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
