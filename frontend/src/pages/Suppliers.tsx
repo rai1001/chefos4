@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, Edit2, Trash2, Mail, Phone } from 'lucide-react';
 import { useSuppliers } from '@/hooks/useSuppliers';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -13,9 +14,11 @@ import { useProductFamilies } from '@/hooks/useProductFamilies';
 
 export default function Suppliers() {
     const [search, setSearch] = useState('');
+    // ⚡ Bolt: Debounce search to avoid API calls on every keystroke
+    const debouncedSearch = useDebounce(search, 500);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | undefined>();
-    const { data: suppliers, isLoading, refetch } = useSuppliers(search);
+    const { data: suppliers, isLoading, refetch } = useSuppliers(debouncedSearch);
     const { data: families } = useProductFamilies();
     const { toast } = useToast();
 
