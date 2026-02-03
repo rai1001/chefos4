@@ -5,6 +5,7 @@ import { renderWithProviders } from './helpers/renderWithProviders';
 import { IngredientsList } from '@/components/ingredients/IngredientsList';
 import { IngredientForm } from '@/components/ingredients/IngredientForm';
 import { CSVImportWizard } from '@/components/ingredients/CSVImportWizard';
+import { Ingredient } from '@/services/ingredients.service';
 
 const ingredientsHookMock = vi.hoisted(() => ({
     useDeleteIngredient: vi.fn(),
@@ -14,6 +15,14 @@ const ingredientsHookMock = vi.hoisted(() => ({
 
 const suppliersHookMock = vi.hoisted(() => ({
     useSuppliers: vi.fn(),
+}));
+
+const productFamiliesHookMock = vi.hoisted(() => ({
+    useProductFamilies: vi.fn(),
+}));
+
+const unitsHookMock = vi.hoisted(() => ({
+    useUnits: vi.fn(),
 }));
 
 const apiMock = vi.hoisted(() => ({
@@ -31,7 +40,11 @@ vi.mock('@/hooks/useSuppliers', () => ({
 }));
 
 vi.mock('@/hooks/useProductFamilies', () => ({
-    useProductFamilies: () => ({ data: [] }),
+    useProductFamilies: productFamiliesHookMock.useProductFamilies,
+}));
+
+vi.mock('@/hooks/useUnits', () => ({
+    useUnits: unitsHookMock.useUnits,
 }));
 
 vi.mock('@/services/api', () => ({ api: apiMock }));
@@ -41,6 +54,11 @@ beforeEach(() => {
     ingredientsHookMock.useCreateIngredient.mockReset();
     ingredientsHookMock.useUpdateIngredient.mockReset();
     suppliersHookMock.useSuppliers.mockReset();
+    suppliersHookMock.useSuppliers.mockReturnValue({ data: [] });
+    productFamiliesHookMock.useProductFamilies.mockReset();
+    productFamiliesHookMock.useProductFamilies.mockReturnValue({ data: [] });
+    unitsHookMock.useUnits.mockReset();
+    unitsHookMock.useUnits.mockReturnValue({ data: [] });
     apiMock.post.mockReset();
 });
 
@@ -60,7 +78,7 @@ describe('IngredientsList', () => {
                     stock_min: 2,
                     cost_price: 2.5,
                     units: { abbreviation: 'kg' },
-                } as any]}
+                } as Ingredient]}
                 pagination={{ total: 1, page: 1, limit: 10, totalPages: 1 }}
                 isLoading={false}
                 onPageChange={vi.fn()}
@@ -68,7 +86,10 @@ describe('IngredientsList', () => {
         );
 
         expect(screen.getByText('Tomate')).toBeInTheDocument();
-        expect(screen.getByText('Bajo')).toBeInTheDocument();
+
+        // Verify accessibility labels
+        expect(screen.getByLabelText('Editar ingrediente')).toBeInTheDocument();
+        expect(screen.getByLabelText('Eliminar ingrediente')).toBeInTheDocument();
 
         const actionButtons = screen.getAllByRole('button');
         await userEvent.click(actionButtons[actionButtons.length - 1]);
@@ -79,22 +100,42 @@ describe('IngredientsList', () => {
 });
 
 describe('IngredientForm', () => {
+    it('shows loading state during submission', () => {
+        ingredientsHookMock.useCreateIngredient.mockReturnValue({ mutate: vi.fn(), isPending: true });
+        ingredientsHookMock.useUpdateIngredient.mockReturnValue({ mutate: vi.fn(), isPending: false });
+
+        const { container } = renderWithProviders(<IngredientForm />);
+
+        expect(screen.getByText('Guardando...')).toBeInTheDocument();
+        expect(container.querySelector('.animate-spin')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /guardando/i })).toBeDisabled();
+    });
+
     it('submits create mutation', async () => {
         const mutate = vi.fn();
         ingredientsHookMock.useCreateIngredient.mockReturnValue({ mutate, isPending: false });
         ingredientsHookMock.useUpdateIngredient.mockReturnValue({ mutate: vi.fn(), isPending: false });
         suppliersHookMock.useSuppliers.mockReturnValue({ data: [{ id: 'c290f1ee-6c54-4b01-90e6-d701748f0859', name: 'Proveedor Uno' }] });
+        productFamiliesHookMock.useProductFamilies.mockReturnValue({ data: [{ id: 'c290f1ee-6c54-4b01-90e6-d701748f0860', name: 'Carnes' }] });
+        unitsHookMock.useUnits.mockReturnValue({ data: [{ id: 'c290f1ee-6c54-4b01-90e6-d701748f0861', name: 'Kilogramo', abbreviation: 'kg' }] });
 
         renderWithProviders(<IngredientForm onSuccess={vi.fn()} />);
 
         await userEvent.type(screen.getByPlaceholderText('Ej: Harina de Trigo'), 'Harina');
 
         const comboBoxes = screen.getAllByRole('combobox');
+
+        // Select Family
         await userEvent.click(comboBoxes[0]);
         await userEvent.click(screen.getByRole('option', { name: 'Carnes' }));
 
+        // Select Supplier
         await userEvent.click(comboBoxes[1]);
         await userEvent.click(screen.getByRole('option', { name: 'Proveedor Uno' }));
+
+        // Select Unit
+        await userEvent.click(comboBoxes[2]);
+        await userEvent.click(screen.getByRole('option', { name: 'Kilogramo (kg)' }));
 
         const numberInputs = screen.getAllByRole('spinbutton');
         await userEvent.clear(numberInputs[0]);
@@ -135,8 +176,8 @@ describe('CSVImportWizard', () => {
         renderWithProviders(<CSVImportWizard />);
 
         const file = new File(['id,name'], 'items.csv', { type: 'text/csv' });
-        const label = screen.getByText('Selecciona un archivo CSV').closest('label');
-        const input = label?.querySelector('input[type=\"file\"]');
+        const label = screen.getByText('Selecciona un archivo CSV o Excel').closest('label');
+        const input = label?.querySelector('input[type="file"]');
         expect(input).toBeTruthy();
         fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
 

@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Form,
@@ -315,7 +316,16 @@ export function IngredientForm({ ingredient, onSuccess }: IngredientFormProps) {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Guardando...' : ingredient ? 'Actualizar' : 'Crear'}
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Guardando...
+                        </>
+                    ) : ingredient ? (
+                        'Actualizar'
+                    ) : (
+                        'Crear'
+                    )}
                 </Button>
             </form>
         </Form>

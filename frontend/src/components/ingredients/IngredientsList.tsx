@@ -100,6 +100,7 @@ export function IngredientsList({
                                             size="sm"
                                             iconOnly
                                             onClick={() => onEdit?.(ingredient)}
+                                            aria-label="Editar ingrediente"
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Button>
@@ -107,6 +108,7 @@ export function IngredientsList({
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setDeleteId(ingredient.id)}
+                                            aria-label="Eliminar ingrediente"
                                         >
                                             <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
