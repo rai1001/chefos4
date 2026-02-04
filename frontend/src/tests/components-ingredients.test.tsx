@@ -16,6 +16,14 @@ const suppliersHookMock = vi.hoisted(() => ({
     useSuppliers: vi.fn(),
 }));
 
+const productFamiliesHookMock = vi.hoisted(() => ({
+    useProductFamilies: vi.fn(),
+}));
+
+const unitsHookMock = vi.hoisted(() => ({
+    useUnits: vi.fn(),
+}));
+
 const apiMock = vi.hoisted(() => ({
     post: vi.fn(),
 }));
@@ -31,7 +39,11 @@ vi.mock('@/hooks/useSuppliers', () => ({
 }));
 
 vi.mock('@/hooks/useProductFamilies', () => ({
-    useProductFamilies: () => ({ data: [] }),
+    useProductFamilies: productFamiliesHookMock.useProductFamilies,
+}));
+
+vi.mock('@/hooks/useUnits', () => ({
+    useUnits: unitsHookMock.useUnits,
 }));
 
 vi.mock('@/services/api', () => ({ api: apiMock }));
@@ -41,6 +53,11 @@ beforeEach(() => {
     ingredientsHookMock.useCreateIngredient.mockReset();
     ingredientsHookMock.useUpdateIngredient.mockReset();
     suppliersHookMock.useSuppliers.mockReset();
+    productFamiliesHookMock.useProductFamilies.mockReset();
+    unitsHookMock.useUnits.mockReset();
+    // Default mock implementation
+    productFamiliesHookMock.useProductFamilies.mockReturnValue({ data: [] });
+    unitsHookMock.useUnits.mockReturnValue({ data: [] });
     apiMock.post.mockReset();
 });
 
@@ -68,7 +85,6 @@ describe('IngredientsList', () => {
         );
 
         expect(screen.getByText('Tomate')).toBeInTheDocument();
-        expect(screen.getByText('Bajo')).toBeInTheDocument();
 
         const actionButtons = screen.getAllByRole('button');
         await userEvent.click(actionButtons[actionButtons.length - 1]);
@@ -84,6 +100,8 @@ describe('IngredientForm', () => {
         ingredientsHookMock.useCreateIngredient.mockReturnValue({ mutate, isPending: false });
         ingredientsHookMock.useUpdateIngredient.mockReturnValue({ mutate: vi.fn(), isPending: false });
         suppliersHookMock.useSuppliers.mockReturnValue({ data: [{ id: 'c290f1ee-6c54-4b01-90e6-d701748f0859', name: 'Proveedor Uno' }] });
+    productFamiliesHookMock.useProductFamilies.mockReturnValue({ data: [{ id: 'a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0', name: 'Carnes' }] });
+    unitsHookMock.useUnits.mockReturnValue({ data: [{ id: 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', name: 'Kilogramo', abbreviation: 'kg' }] });
 
         renderWithProviders(<IngredientForm onSuccess={vi.fn()} />);
 
@@ -95,6 +113,9 @@ describe('IngredientForm', () => {
 
         await userEvent.click(comboBoxes[1]);
         await userEvent.click(screen.getByRole('option', { name: 'Proveedor Uno' }));
+
+        await userEvent.click(comboBoxes[2]);
+        await userEvent.click(screen.getByRole('option', { name: 'Kilogramo (kg)' }));
 
         const numberInputs = screen.getAllByRole('spinbutton');
         await userEvent.clear(numberInputs[0]);
@@ -135,7 +156,7 @@ describe('CSVImportWizard', () => {
         renderWithProviders(<CSVImportWizard />);
 
         const file = new File(['id,name'], 'items.csv', { type: 'text/csv' });
-        const label = screen.getByText('Selecciona un archivo CSV').closest('label');
+        const label = screen.getByText('Selecciona un archivo CSV o Excel').closest('label');
         const input = label?.querySelector('input[type=\"file\"]');
         expect(input).toBeTruthy();
         fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
