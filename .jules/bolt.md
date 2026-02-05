@@ -1,0 +1,3 @@
+## 2024-05-22 - [Frontend Build & Env Dependencies]
+**Learning:** The frontend build process and runtime initialization depend strictly on Supabase environment variables being present (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Missing these causes immediate failures during module import, affecting both tests and the dev server. Additionally, the project uses a monorepo structure but was missing `pnpm-workspace.yaml`, causing dependency installation issues with `pnpm`.
+**Action:** Always ensure `VITE_SUPABASE_*` env vars are mocked in tests (via `vi.mock` or `setupTests.ts`) and present in `.env` for local development. When working with `pnpm` in this monorepo, a `pnpm-workspace.yaml` may be temporarily needed if not present.
