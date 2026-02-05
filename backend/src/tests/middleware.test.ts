@@ -203,4 +203,25 @@ describe('Middleware', () => {
         });
         expect(next).toHaveBeenCalled();
     });
+
+    it('authMiddleware denies login when organization table is missing (PGRST205)', async () => {
+        const req = { headers: { authorization: 'Bearer ok' } } as AuthRequest;
+        const res = createRes();
+        const next = vi.fn();
+        vi.spyOn(jwt, 'verify').mockReturnValue({ userId: 'user-1', email: 'a@b.com' } as any);
+
+        const fromSpy = vi.spyOn(supabase, 'from');
+        fromSpy.mockReturnValue({
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            then: (resolve: any) => resolve({ data: null, error: { code: 'PGRST205', message: 'Table not found' } }),
+        } as any);
+
+        await authMiddleware(req, res, next);
+
+        // FIX: It should Fail Closed (500)
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ error: 'Internal server error' });
+        expect(next).not.toHaveBeenCalled();
+    });
 });
