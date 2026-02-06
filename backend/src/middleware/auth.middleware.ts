@@ -38,18 +38,6 @@ export const authMiddleware = async (
             .select('organization_id')
             .eq('user_id', decoded.userId);
 
-        // TEMPORAL: Si la tabla no existe, permitir acceso sin organizaciones
-        if (error && (error as any).code === 'PGRST205') {
-            logger.warn(`organization_members table not found - allowing login without organizations for user ${decoded.email}`);
-            req.user = {
-                id: decoded.userId,
-                email: decoded.email,
-                organizationIds: [], // Sin organizaciones por ahora
-            };
-            next();
-            return;
-        }
-
         if (error) {
             logger.error(error as any, 'Error fetching user organizations:');
             res.status(500).json({ error: 'Internal server error' });
