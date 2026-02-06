@@ -170,3 +170,56 @@ export const updatePurchaseOrderSchema = z.object({
         // status also allows 'PARTIAL' in controller logic
     })
 });
+
+// --- INVENTORY SCHEMAS ---
+
+export const stockOutSchema = z.object({
+    body: z.object({
+        quantity: z.number().positive('Quantity must be positive'),
+        movement_type: z.enum(['OUT', 'WASTE', 'ADJUSTMENT']).optional().default('OUT'),
+        barcode: z.string().optional(),
+        ingredient_id: z.string().uuid().optional(),
+        notes: z.string().optional(),
+        production_order_id: z.string().uuid().optional(),
+        save_barcode: z.boolean().optional(),
+    }),
+});
+
+export const createLocationSchema = z.object({
+    body: z.object({
+        name: z.string().min(2, 'Name must be at least 2 characters'),
+        type: z.string().optional().nullable(),
+    }),
+});
+
+export const updateLocationSchema = z.object({
+    body: z.object({
+        name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+        type: z.string().optional().nullable(),
+    }),
+});
+
+export const updateBatchSchema = z.object({
+    body: z.object({
+        expiry_date: z.string().datetime().optional().nullable(), // Or just string if loose validation, but datetime is better
+        storage_location_id: z.string().uuid().optional().nullable(),
+        lot_code: z.string().optional().nullable(),
+    }),
+});
+
+export const createCycleCountSchema = z.object({
+    body: z.object({
+        name: z.string().min(2, 'Name must be at least 2 characters'),
+        location_id: z.string().uuid().optional().nullable(),
+    }),
+});
+
+export const updateCycleCountItemsSchema = z.object({
+    body: z.object({
+        items: z.array(z.object({
+            id: z.string().uuid(),
+            counted_qty: z.number().min(0),
+            notes: z.string().optional().nullable(),
+        })).min(1, 'At least one item is required'),
+    }),
+});
