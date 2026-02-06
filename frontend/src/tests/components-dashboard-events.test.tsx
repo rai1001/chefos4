@@ -30,12 +30,18 @@ describe('dashboard components', () => {
         renderWithProviders(<DeadlineAlerts />);
         expect(await screen.findByText('Banquete')).toBeInTheDocument();
         expect(screen.getByText('Alertas de Pedido')).toBeInTheDocument();
+        expect(eventsServiceMock.getAll).toHaveBeenCalledWith(expect.objectContaining({
+            status: 'DRAFT',
+        }));
     });
 
     it('shows empty state when no urgent events', async () => {
         eventsServiceMock.getAll.mockResolvedValueOnce({ data: [] });
         renderWithProviders(<DeadlineAlerts />);
         expect(await screen.findByText(/No hay eventos próximos/i)).toBeInTheDocument();
+        expect(eventsServiceMock.getAll).toHaveBeenCalledWith(expect.objectContaining({
+            status: 'DRAFT',
+        }));
     });
 });
 
